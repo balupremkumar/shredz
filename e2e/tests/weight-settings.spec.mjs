@@ -10,7 +10,8 @@ const weights = [
 test('weight tab: chart by date, newest-first list, log with a comma decimal', async ({ page }) => {
   await openApp(page, { foods: FOODS, weights });
   await page.locator('.tabbar').getByRole('button', { name: 'Weight' }).click();
-  await expect(page.locator('.chart svg polyline')).toHaveCount(1);
+  // Daily line plus the 7-day average line (v1.1).
+  await expect(page.locator('.chart svg polyline')).toHaveCount(2);
   const rows = page.locator('main button.row');
   await expect(rows.first()).toContainText('82.4 kg');
   const input = page.getByLabel('Weight in kg');
@@ -34,14 +35,15 @@ test('weight tab: edit and delete a past weigh-in', async ({ page }) => {
 test('goals saved in settings drive the diary summary', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(localDate()) });
   await page.getByRole('button', { name: 'Settings' }).click();
-  await page.getByLabel(/Calories/).fill('2300');
-  await page.getByLabel(/Protein/).fill('170');
-  await page.getByLabel(/Carbs/).fill('240');
-  await page.getByLabel(/Fat/).fill('65');
+  await page.getByRole('button', { name: 'Grams', exact: true }).click();
+  await page.getByLabel('Protein g').fill('170');
+  await page.getByLabel('Carbs g').fill('240');
+  await page.getByLabel('Fat g').fill('65');
   await page.getByRole('button', { name: 'Save goals' }).click();
   await page.locator('.tabbar').getByRole('button', { name: 'Diary' }).click();
-  await expect(page.locator('.summary')).toContainText('2,300');
-  await expect(page.locator('.summary')).toContainText('1,461');
+  // 170 x 4 + 240 x 4 + 65 x 9 = 2,225 kcal; 2,225 minus 839 eaten = 1,386 left.
+  await expect(page.locator('.summary')).toContainText('2,225');
+  await expect(page.locator('.summary')).toContainText('1,386');
   await expect(page.locator('.macros')).toContainText('/ 170');
 });
 

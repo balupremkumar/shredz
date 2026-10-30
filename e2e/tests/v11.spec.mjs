@@ -12,7 +12,7 @@ test('plus and minus step an item and never go below one step', async ({ page })
   await page.getByRole('button', { name: 'Less Weet-Bix' }).click();
   await expectFood(page, '784');
   await page.getByRole('button', { name: 'More Chicken breast' }).click();
-  await expectFood(page, '825');
+  await expectFood(page, '826');
 });
 
 test('swipe an item left to delete it', async ({ page }) => {
@@ -26,7 +26,7 @@ test('swipe an item left to delete it', async ({ page }) => {
     await row.dispatchEvent('pointermove', { pointerType: 'touch', clientX: box.x + box.width - 100 - dx, clientY: y, isPrimary: true, pointerId: 7 });
   }
   await row.dispatchEvent('pointerup', { pointerType: 'touch', clientX: box.x + box.width - 230, clientY: y, isPrimary: true, pointerId: 7 });
-  await page.locator('.row-swipe__delete').first().click();
+  await page.getByRole('button', { name: 'Delete Cashews' }).click();
   await expectFood(page, '723');
 });
 

@@ -1,5 +1,5 @@
 import { h } from './dom.js';
-import { addDays, daysBetween, dayLabel, shortDate, localDate, formatKg, formatChange } from '../format.js';
+import { addDays, daysBetween, dayLabel, shortDate, localDate, formatKg, formatChange, formatKcal, formatGrams } from '../format.js';
 
 function weightInput(value, id) {
   return h('input', {
@@ -29,12 +29,12 @@ function svgElement(tag, attrs, text) {
   return element;
 }
 
-function chart(weights, date, today) {
+function chart(weights, trend, date, today) {
   if (weights.length < 2) {
     return h('p', { class: 'empty', text: 'Log at least two days to see your trend.' });
   }
   const start = addDays(date, -29);
-  const values = weights.map(weight => weight.kg);
+  const values = [...weights, ...trend].map(weight => weight.kg);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const padding = min === max ? 1 : 0.5;
@@ -56,12 +56,20 @@ function chart(weights, date, today) {
   }
   svg.appendChild(svgElement('polyline', {
     points: weights.map(weight => `${x(weight.date)},${y(weight.kg)}`).join(' '),
-    fill: 'none', stroke: '#43A6F5', 'stroke-width': 2,
+    fill: 'none', stroke: 'var(--muted)', 'stroke-width': 1,
   }));
-  const latest = weights[weights.length - 1];
-  svg.appendChild(svgElement('rect', {
-    x: x(latest.date) - 3, y: y(latest.kg) - 3, width: 6, height: 6, fill: '#43A6F5',
-  }));
+  for (const weight of weights) {
+    svg.appendChild(svgElement('circle', {
+      cx: x(weight.date), cy: y(weight.kg), r: 2, fill: 'var(--muted)',
+    }));
+  }
+  if (trend.length) {
+    svg.appendChild(svgElement('polyline', {
+      points: trend.map(point => `${x(point.date)},${y(point.kg)}`).join(' '),
+      fill: 'none', stroke: '#43A6F5', 'stroke-width': 2.5,
+      'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+    }));
+  }
   for (const [day, anchor, label] of [
     [start, 'start', shortDate(start)],
     [addDays(start, 14), 'middle', shortDate(addDays(start, 14))],
@@ -71,7 +79,31 @@ function chart(weights, date, today) {
       x: x(day), y: 152, 'text-anchor': anchor, fill: 'var(--muted)',
     }, label));
   }
-  return h('div', { class: 'chart' }, svg);
+  return h('div', { class: 'chart' }, svg,
+    h('p', { class: 'muted', text: 'Line: 7-day average. Dots: daily.' }));
+}
+
+function reportSection(app) {
+  const reports = [app.select.report(7), app.select.report(30)];
+  const rows = [
+    ['Calories', report => formatKcal(report.kcal)],
+    ['Protein', report => formatGrams(report.protein)],
+    ['Carbs', report => formatGrams(report.carbs)],
+    ['Fat', report => formatGrams(report.fat)],
+    ['Weight change', report => (report.weightChange === null ? 'n/a' : `${formatChange(report.weightChange)} kg`)],
+  ];
+  return h('section', { class: 'section' },
+    h('div', { class: 'section__head' }, h('h2', { text: 'Report' })),
+    h('div', { class: 'list' },
+      h('div', { class: 'row' },
+        h('span', { class: 'row__body' }),
+        h('span', { class: 'row__kcal num', text: '7 days' }),
+        h('span', { class: 'row__kcal num', text: '30 days' })),
+      rows.map(([label, value]) => h('div', { class: 'row' },
+        h('span', { class: 'row__body' }, h('span', { class: 'row__name', text: label })),
+        reports.map(report => h('span', { class: 'row__kcal num', text: value(report) }))))),
+    h('p', { class: 'muted', text: reports.map(report => `${report.loggedDays} of ${report.days} days logged`).join(', ') }),
+  );
 }
 
 export function render(root, app) {
@@ -98,9 +130,10 @@ export function render(root, app) {
       h('button', { class: 'pill pill--primary', text: 'Save', attrs: { type: 'submit' } })),
     problem,
   ));
+  root.appendChild(reportSection(app));
   root.appendChild(h('section', { class: 'section' },
     h('div', { class: 'section__head' }, h('h2', { text: 'Last 30 days' })),
-    chart(app.select.weights(30), date, today),
+    chart(app.select.weights(30), app.select.weightTrend(30), date, today),
   ));
   const weights = app.select.weights(90);
   const recent = weights.slice(-14).reverse().map((weight, index) => {

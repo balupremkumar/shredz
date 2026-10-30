@@ -42,7 +42,8 @@ function dictate(root, app, props = {}) {
       live.appendChild(h('p', { class: 'problem-line',
         text: `${preview.unmatched.length} not recognised: ${preview.unmatched.map(item => item.raw).join(', ')}` }));
     }
-    save.disabled = !hasItems(preview);
+    // Unrecognised words still go to Confirm, where they can be taught or added as foods.
+    save.disabled = !hasItems(preview) && !preview.unmatched.length;
   }
   const textarea = h('textarea', { class: 'textarea', attrs: {
     'aria-label': 'What you ate', autocapitalize: 'sentences', autocorrect: 'off', spellcheck: 'false',
