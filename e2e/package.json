@@ -1,0 +1,12 @@
+{
+  "name": "macro-diary-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests for Macro Diary (test tooling only; the app itself has no dependencies).",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}
