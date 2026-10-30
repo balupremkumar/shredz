@@ -10,16 +10,18 @@ export const FOODS = [
 export const SENTENCE = 'Meal number one, 2 Weet-Bix, green milk 200 mils and one scoop of whey protein. Meal number two, chicken breast 125 grams, basmati rice 150 grams and 20 grams of cashews.';
 
 // Runs in the page after the app has created its database once.
-export async function seed(page, { foods = FOODS, entries = [], weights = [] } = {}) {
-  await page.evaluate(async ({ foods, entries, weights }) => {
+export async function seed(page, { foods = FOODS, entries = [], weights = [], savedMeals = [] } = {}) {
+  await page.evaluate(async ({ foods, entries, weights, savedMeals }) => {
     const db = await new Promise((res, rej) => { const r = indexedDB.open('macro-diary'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
-    const tx = db.transaction(['foods', 'entries', 'weights'], 'readwrite');
+    const stores = ['foods', 'entries', 'weights', ...(db.objectStoreNames.contains('savedMeals') ? ['savedMeals'] : [])];
+    const tx = db.transaction(stores, 'readwrite');
     foods.forEach(f => tx.objectStore('foods').put(f));
     entries.forEach(e => tx.objectStore('entries').put(e));
     weights.forEach(w => tx.objectStore('weights').put(w));
+    if (stores.includes('savedMeals')) savedMeals.forEach(m => tx.objectStore('savedMeals').put(m));
     await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); });
     db.close();
-  }, { foods, entries, weights });
+  }, { foods, entries, weights, savedMeals });
   await page.reload();
   await page.waitForSelector('.tabbar .tab');
 }

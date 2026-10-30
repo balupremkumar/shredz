@@ -78,6 +78,7 @@ function confirm(root, app, props = {}) {
   suppliedText = text;
   const preview = app.select.preview(text);
   const foods = new Map(app.select.foods().map(food => [food.id, food]));
+  const savedNames = new Map(app.select.savedMeals().map(saved => [saved.id, saved.name]));
   const edit = () => open(app, 'dictate', { text });
   const body = h('div', { class: 'sheet__body' });
   for (const meal of preview.meals) {
@@ -92,7 +93,8 @@ function confirm(root, app, props = {}) {
       return h('div', { class: 'row' },
         h('div', { class: 'row__body' },
           h('div', { class: 'row__name', text: food.name }),
-          h('span', { class: 'row__qty', text: formatQty(item.qty, food.unit) })),
+          h('span', { class: 'row__qty', text: formatQty(item.qty, food.unit)
+            + (item.savedMealId && savedNames.has(item.savedMealId) ? ` from ${savedNames.get(item.savedMealId)}` : '') })),
         h('span', { class: 'row__kcal', text: `${formatKcal(nutrition.kcal)} kcal` }));
     });
     body.appendChild(h('section', { class: 'section' },
@@ -102,14 +104,47 @@ function confirm(root, app, props = {}) {
       rows));
   }
   for (const item of preview.unmatched) {
-    const row = h('div', { class: 'row row--problem' },
-      h('div', { class: 'row__body' },
+    const word = foodName(item.raw);
+    const row = h('div', { class: 'row row--problem' });
+    const error = h('p', { class: 'problem-line' });
+    error.hidden = true;
+    function showActions() {
+      clear(row);
+      row.appendChild(h('div', { class: 'row__body' },
         h('div', { class: 'row__name', text: `Not recognised: ${item.raw}` }),
         button('Add as food', 'link-btn', () => open(app, 'food-edit', {
-          name: foodName(item.raw), returnTo: { name: 'confirm', props: { text } },
+          name: word, returnTo: { name: 'confirm', props: { text } },
         })),
-        button('Remove', 'link-btn', () => { row.hidden = true; })));
+        button('This is...', 'link-btn', showPicker),
+        button('Remove', 'link-btn', () => { row.hidden = true; error.hidden = true; })));
+    }
+    function showPicker() {
+      clear(row);
+      const select = h('select', { class: 'select', attrs: { 'aria-label': `Which food is ${word}?` } },
+        h('option', { text: '', attrs: { value: '' } }),
+        app.select.recentFoods().map(food => h('option', { text: food.name, attrs: { value: food.id } })));
+      row.appendChild(h('div', { class: 'row__body' },
+        select,
+        button('Learn', 'pill pill--primary', async () => {
+          if (!select.value) {
+            error.textContent = 'Pick a food first';
+            error.hidden = false;
+            return;
+          }
+          const food = select.options[select.selectedIndex].textContent;
+          const result = await app.actions.addAlias(select.value, word);
+          if (!result.ok) {
+            error.textContent = result.error;
+            error.hidden = false;
+            return;
+          }
+          app.toast(`Learned ${word} as ${food}`);
+        }),
+        button('Cancel', 'link-btn', () => { error.hidden = true; showActions(); })));
+    }
+    showActions();
     body.appendChild(row);
+    body.appendChild(error);
   }
   for (const warning of preview.warnings) {
     body.appendChild(h('p', { class: 'problem-line', text: warning.message }));
