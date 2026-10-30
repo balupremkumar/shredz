@@ -32,6 +32,10 @@ function squash(text) {
 
 function quantityAt(tokens, start) {
   const word = tokens[start].word;
+  const joined = /^(\d+(?:\.\d+)?)([a-z]+)$/.exec(word);
+  if (joined && units.has(joined[2])) {
+    return { start, end: start + 1, value: Number(joined[1]), spoken: units.get(joined[2]) };
+  }
   let value = numberWords.get(word);
   let end = start + 1;
   if (/^\d+(?:\.\d+)?$/.test(word)) value = Number(word);
@@ -136,8 +140,9 @@ function parseMeal(text, meal, foods, result) {
 /** Parse dictated meals without changing the supplied food catalogue. */
 export function parseDictation(text, foods, { defaultMeal = 1 } = {}) {
   let normalised = normalise(text);
-  const save = /(?:^| )save$/.test(normalised);
-  if (save) normalised = normalised.replace(/(?:^| )save$/, '').trim();
+  const saveSuffix = /(?:^| )(?:save(?: it)?|saved)$/;
+  const save = saveSuffix.test(normalised);
+  if (save) normalised = normalised.replace(saveSuffix, '').trim();
   const result = { meals: [], unmatched: [], warnings: [], save };
   const segments = new Map();
   const append = (meal, content) => {

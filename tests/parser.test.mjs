@@ -117,6 +117,63 @@ test('leftovers, filler and trailing save', () => {
   assert.deepEqual(parseDictation('', foods), { meals: [], unmatched: [], warnings: [], save: false });
   assert.equal(parseDictation('SAVE!!!', foods).save, true);
   assert.equal(parseDictation('save milk', foods).save, false);
-  assert.equal(parseDictation('milk saved', foods).save, false);
+  assert.equal(parseDictation('milk saved', foods).save, true);
   assert.equal(parseDictation('milk, 200.5 mls. save.', foods).meals[0].items[0].qty, 200.5);
+});
+
+test('joined quantities in the reviewed whole-day dictation', () => {
+  const result = parseDictation('Meal 1 2 Weetbix 200ml green milk 1 scoop whey. Meal 2 chicken breast 125g basmati rice 150g cashews 20g. Save', foods);
+  assert.deepEqual(compact(result), [
+    [1, [['weetbix', 2, 'item'], ['milk', 200, 'ml'], ['whey', 1, 'scoop']]],
+    [2, [['chicken', 125, 'g'], ['rice', 150, 'g'], ['cashews', 20, 'g']]],
+  ]);
+  assert.deepEqual(result.unmatched, []);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.save, true);
+});
+
+test('joined quantities match spaced quantities and preserve raw spans', () => {
+  for (const [joined, spaced, food, qty] of [
+    ['125g', '125 g', 'chicken breast', 125],
+    ['125gm', '125 gm', 'chicken breast', 125],
+    ['125gms', '125 gms', 'chicken breast', 125],
+    ['200ml', '200 ml', 'green milk', 200],
+    ['200mls', '200 mls', 'green milk', 200],
+    ['0.3kg', '0.3 kg', 'chicken breast', 300],
+    ['1.5l', '1.5 l', 'green milk', 1500],
+    ['1L', '1 L', 'green milk', 1000],
+    ['200mL', '200 mL', 'green milk', 200],
+  ]) {
+    for (const suffix of [false, true]) {
+      const text = suffix ? `${food} ${joined}` : `${joined} ${food}`;
+      const spacedText = suffix ? `${food} ${spaced}` : `${spaced} ${food}`;
+      const result = parseDictation(text, foods);
+      assert.deepEqual(compact(result), compact(parseDictation(spacedText, foods)), text);
+      assert.equal(result.meals[0].items[0].qty, qty, text);
+      assert.equal(result.meals[0].items[0].raw, text.toLowerCase(), text);
+      assert.deepEqual(result.unmatched, [], text);
+      assert.deepEqual(result.warnings, [], text);
+    }
+  }
+  const mismatch = parseDictation('200g whey', foods);
+  assert.equal(mismatch.meals[0].items[0].qty, 200);
+  assert.equal(mismatch.warnings.length, 1);
+  assert.deepEqual(parseDictation('125xyz', foods).unmatched, [{ meal: 1, raw: '125xyz' }]);
+});
+
+test('trailing saved and save it commands accept punctuation and case', () => {
+  const expected = { meals: [{ meal: 1, items: [
+    { foodId: 'weetbix', qty: 2, unit: 'item', raw: '2 weetbix' },
+  ] }], unmatched: [], warnings: [], save: true };
+  assert.deepEqual(parseDictation('Meal number one, 2 Weet-Bix. Saved.', foods), expected);
+  for (const suffix of ['save', 'saved', 'save it', 'SAVED', 'SAVE IT']) {
+    for (const punctuation of ['', '.', '?!', ',;:()[]{}']) {
+      assert.deepEqual(parseDictation(`Meal number one, 2 Weet-Bix. ${suffix}${punctuation}`, foods), expected);
+      assert.deepEqual(parseDictation(`${suffix}${punctuation}`, foods),
+        { meals: [], unmatched: [], warnings: [], save: true });
+    }
+  }
+  for (const text of ['saved milk', 'save it milk', 'unsaved', 'save items', 'saved it']) {
+    assert.equal(parseDictation(text, foods).save, false, text);
+  }
 });
