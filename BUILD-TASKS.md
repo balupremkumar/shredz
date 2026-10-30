@@ -48,7 +48,7 @@ After the first open it works with no signal (airplane mode).
 3. T14 and T15, then T16 to T19 (Opus tests, Sonnet review), fixes go back to Codex as resumes or new jobs.
 4. T20 to T22 after Balu's yes to push.
 
-## v1.1 quality of life (Balu's picks, 31 Oct 2026, awaiting green light)
+## v1.1 quality of life (Balu's picks, 31 Oct 2026; BUILT 31 Oct, 141 unit + 32 E2E green, reviewed)
 
 | # | Feature | What it does | Builder | Done when |
 |---|---|---|---|---|

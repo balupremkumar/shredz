@@ -3,16 +3,15 @@ Vault: [[HOME]] | [[projects/active/macro-diary/PLAN|Plan]] | [[PORTFOLIO|Portfo
 # STATE: Macro Diary
 
 ## Current state
-Feature complete and reviewed on branch `build` (31 Oct 2026); main holds the scaffold only. Not pushed, no GitHub repo yet.
-Built by Codex Sol (15 jobs), reviewed and E2E-tested by Opus, Sonnet review findings fixed. Unit `npm test` 116 green; E2E `cd e2e; npx playwright test` 23 green (WebKit, iPhone 15).
-Publishing is ON HOLD until Balu is home (his answer 31 Oct: "will publish when home, hold").
-Install target: https://balupremkumar.github.io/macro-diary/ (QR in icons/install-qr.png, steps in README).
+v0.2.0 (v1 plus v1.1 quality of life) complete on branch `build`, 31 Oct 2026; main holds the scaffold only. Not pushed, no GitHub repo yet.
+v1 built by Codex Sol; v1.1 built by Sonnet after Codex hit its 80% usage guard; Opus briefs, reviews, E2E and polish. Two Sonnet reviews, all confirmed findings fixed.
+Unit `npm test` 141 green; E2E `cd e2e; npx playwright test` 32 green (WebKit, iPhone 15).
+Balu's 13 NZ foods: private/macro-diary-foods.json (git-ignored), import verified in WebKit; values and sources in private/foods-research.md (rice cake weight, toast slice weight and Scorpion whey are estimates to check).
+Publishing ON HOLD until Balu is home.
 
 ## Next steps
-- v1.1 GREEN LIT 31 Oct (BUILD-TASKS.md "v1.1 quality of life", Q1 to Q13). Wave 1 running on Codex (base b28ba62): md-v11-data (store v2, savedMeals, settings, backup schema 2), md-v11-parser (saved meal names), md-v11-insights (new src/insights.js).
-- RESUME HERE: merge wave 1, then wave 2 actions.js (saved meals CRUD, addAlias, goal modes, select.recentFoods, select.report, CSV, stepQty), then wave 3 UI (diary.js + styles.css; dictate.js; settings.js + weight.js), then Opus: app.js (large-text class, setAppBadge via insights.needsWeighIn), sw.js FILES + src/insights.js, VERSION 0.2.0 in sw.js and src/version.js, new E2E specs, Sonnet review of the v1.1 diff.
-- Publishing ON HOLD until Balu is home; then T20 to T22 as below. Foods file ready: private/macro-diary-foods.json (13 foods, git-ignored), Balu imports with Settings, Import backup, Merge.
-- T20 when Balu says go: `gh repo create balupremkumar/macro-diary --public --source . --push`, merge build to main, enable Pages on main (root), E2E with MD_BASE_URL, guide install.
+- RESUME HERE when Balu says go: `gh repo create balupremkumar/macro-diary --public --source . --push` from the project folder, merge build to main, enable Pages on main (root), then `cd e2e; $env:MD_BASE_URL='https://balupremkumar.github.io/macro-diary/'; npx playwright test`, then guide install and the food import (email the JSON to himself, Save to Files, Settings, Import backup, Merge).
+- Ideas not picked: BACKLOG.md.
 
 ## Open bugs
 None.
