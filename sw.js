@@ -15,6 +15,7 @@ const FILES = [
   './src/backup.js',
   './src/diary.js',
   './src/format.js',
+  './src/insights.js',
   './src/parser.js',
   './src/pwa.js',
   './src/store.js',
