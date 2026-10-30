@@ -3,13 +3,13 @@ Vault: [[HOME]] | [[projects/active/macro-diary/PLAN|Plan]] | [[PORTFOLIO|Portfo
 # STATE: Macro Diary
 
 ## Current state
-Phase 0 (31 Oct 2026): repo, PLAN.md and phone mock. Codex Sol building `src/parser.js` and `src/diary.js` in parallel.
-iPhone PWA, local IndexedDB, keyboard-mic dictation parsed on the phone, numbered meals, public GitHub Pages (decisions in PLAN.md).
+Branch `build` (main holds the scaffold only; merging to main needs Balu's yes).
+Done 31 Oct 2026: `src/diary.js` (Codex Sol, 11 tests) and `src/parser.js` (Codex Sol plus one resume for joined units like "125g" and "saved", 13 tests); `npm test` green.
+Mock v1 rejected as bland. Mock v2 in progress: Kove Deep Cove palette plus Cursor's design language, dark only, pill buttons (a deliberate ban-list exception Balu asked for). Dictate uses a compact live line while the keyboard is up, then a confirm screen.
 
 ## Next steps
-- Balu signs off the mock (`mock/index.html`).
-- Review and merge Codex jobs 1a (parser) and 1b (diary).
-- Phase 2 UI + store (Sonnet), Phase 3 PWA, Phase 4 Pages deploy after Balu's yes.
+- Check mock v2, then Phase 2: store (IndexedDB) and real screens built by Sonnet to the mock.
+- Phase 3 PWA shell, icons, export/import; Phase 4 GitHub Pages after Balu's yes to push.
 - Later: Balu supplies his food list for preloading.
 
 ## Open bugs
