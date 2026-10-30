@@ -237,7 +237,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .row__qty { display: block; font-size: var(--text-secondary); color: var(--muted); line-height: 1.2; }
 .row__kcal { flex: none; text-align: right; font-variant-numeric: proportional-nums; }
 .row--problem { color: var(--red); }
-.row-swipe { position: relative; overflow: hidden; border-top: 1px solid var(--line); background: var(--red); }
+.row-swipe { position: relative; overflow: hidden; border-top: 1px solid var(--line); background: var(--surface); }
+.row-swipe[data-state="drag"], .row-swipe[data-state="open"] { background: var(--red); }
 .row-swipe > .row { position: relative; border-top: 0; background: var(--surface); touch-action: pan-y; transition: transform 150ms ease-out; }
 .row-swipe[data-state="drag"] > .row { transition: none; }
 .row-swipe__delete { position: absolute; top: 0; right: 0; bottom: 0; width: 88px; background: var(--red); color: var(--ink-on-accent); font-weight: 500; visibility: hidden; }
@@ -346,3 +347,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 /* Weight tab entry: input grows, unit and Save never wrap. */
 .row > .weigh-in__input { flex: 1 1 auto; width: auto; }
 .row > span, .row > .pill { flex: none; white-space: nowrap; }
+
+/* Settings toggles: label on the left, a 24 px checkbox on the right. */
+label.row > input[type="checkbox"] { order: 2; flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--azure); }
+label.row > .row__body { order: 1; flex: 1; }
