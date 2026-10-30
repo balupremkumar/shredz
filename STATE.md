@@ -3,15 +3,15 @@ Vault: [[HOME]] | [[projects/active/macro-diary/PLAN|Plan]] | [[PORTFOLIO|Portfo
 # STATE: Macro Diary
 
 ## Current state
-GREEN LIT by Balu 31 Oct 2026; building on branch `build` per BUILD-TASKS.md (main holds the scaffold only).
-Done: T1 parser, T2 diary maths, T3 mock v2 (approved, plus one-tap weigh-in tweak), T4 store, T5 backup, T6 format. `npm test` 78 green.
-Running (Codex Sol, base 1944f28): T7 `md-styles`, T8a `md-actions` (src/actions.js controller), T8b `md-shell` (index.html, src/app.js, src/ui stubs). Briefs in D:\Dev\codex\_briefs\.
-E2E tooling ready: `e2e/` has @playwright/test 1.64.1, WebKit installed, iPhone 15 emulation verified.
+Feature complete on branch `build` (31 Oct 2026); main holds the scaffold only. Not pushed, no GitHub repo yet.
+Built by Codex Sol (14 jobs), reviewed and E2E-tested by Opus; polish fixes by Opus. Unit `npm test` 92 green; E2E `cd e2e; npx playwright test` 23 green (WebKit, iPhone 15).
+Sonnet review 31 Oct: 1 high (non-atomic import), fixes running as Codex job `md-review-fix`.
+Install target: https://balupremkumar.github.io/macro-diary/ (QR in icons/install-qr.png, steps in README).
 
 ## Next steps
-- RESUME HERE: `cx list -Reconcile`, review and merge md-styles, md-actions, md-shell; then wave 3 screens T9 diary, T10 dictate, T11 foods (Codex), wave 4 T12 weight, T13 settings, T14 PWA; T15 install helper.
-- Then T16 to T19 tests (Opus E2E in e2e/, Sonnet reviewer), T20 to T22 ship only after Balu's yes to push.
-- Builder rule: Codex first; Sonnet when Codex passes 80% of its window or a job fails twice.
+- RESUME HERE: merge `md-review-fix` after reading its diff, rerun unit + E2E.
+- Ask Balu's yes to: create public repo balupremkumar/macro-diary, push, enable Pages, merge build to main (T20). Then E2E against live URL with MD_BASE_URL (T21), then Balu installs (T22).
+- Later: Balu's own food list (T23) via Settings, Import backup (foods-only JSON).
 
 ## Open bugs
 None.

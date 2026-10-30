@@ -52,7 +52,7 @@ test('backup: export, wipe, import with replace restores everything; a bad file 
     page.waitForEvent('download'),
     page.getByRole('button', { name: 'Export backup' }).click(),
   ]);
-  expect(download.suggestedFilename()).toBe(`macro-diary-${new Date().toISOString().slice(0, 10)}.json`);
+  expect(download.suggestedFilename()).toBe(`macro-diary-${localDate(0)}.json`);
   const file = info.outputPath('backup.json');
   await download.saveAs(file);
   const backup = JSON.parse(readFileSync(file, 'utf8'));
