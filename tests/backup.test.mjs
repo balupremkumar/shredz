@@ -178,7 +178,12 @@ test('merge resolves clashes in place, appends new ids, sorts weights and preser
   assert.deepEqual(merged.weights, [incoming.weights[1], current.weights[2], incoming.weights[0], current.weights[0]]);
   assert.deepEqual(merged.settings, current.settings);
   const replacement = { goals: { kcal: 0, protein: 0, carbs: 0, fat: 0 } };
-  assert.deepEqual(mergeData(current, { ...incoming, settings: replacement }).settings, replacement);
+  assert.deepEqual(mergeData(current, { ...incoming, settings: replacement }).settings, { ...current.settings, ...replacement });
+  const kept = { ...current, settings: { ...makeSettingsFull(), largeText: true } };
+  const goalsOnly = mergeData(kept, { ...incoming, settings: { goals: replacement.goals } }).settings;
+  assert.equal(goalsOnly.largeText, true);
+  assert.equal(goalsOnly.goalMode, kept.settings.goalMode);
+  assert.deepEqual(goalsOnly.goals, replacement.goals);
   for (const key of ['foods', 'entries', 'weights']) {
     assert.notEqual(merged[key], current[key]);
     assert.notEqual(merged[key], incoming[key]);
@@ -186,6 +191,11 @@ test('merge resolves clashes in place, appends new ids, sorts weights and preser
   assert.deepEqual(current, beforeCurrent);
   assert.deepEqual(incoming, beforeIncoming);
 });
+
+function makeSettingsFull() {
+  return { goals: { kcal: 1, protein: 1, carbs: 1, fat: 1 }, goalMode: 'percent',
+    split: { protein: 30, carbs: 40, fat: 30 }, largeText: false };
+}
 
 test('summarise counts records and distinct entry dates', () => {
   assert.deepEqual(summarise(fixture()), { foods: 6, entries: 4, weights: 3, savedMeals: 0, days: 2 });

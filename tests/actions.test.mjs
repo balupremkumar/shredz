@@ -286,6 +286,9 @@ test('addAlias learns words and refuses clashes; stepEntry steps by unit', async
   assert.match((await app.actions.addAlias('rice', 'green milk')).error, /Already used for Green milk/);
   assert.match((await app.actions.addAlias('rice', 'usual')).error, /Already used for Usual/);
   assert.equal((await app.actions.addAlias('rice', '   ')).ok, false);
+  await app.actions.addAlias('weetbix', 'hardboiled');
+  assert.match((await app.actions.addAlias('rice', 'Hard-Boiled')).error, /Already used for Weet-Bix/);
+  assert.match((await app.actions.addAlias('rice', 'hard boiled')).error, /Already used for Weet-Bix/);
   assert.equal((await app.actions.addAlias('nope', 'word')).ok, false);
   await app.actions.addItems(date, 1, [{ foodId: 'weetbix', qty: 2 }, { foodId: 'rice', qty: 100 }]);
   const [item, grams] = app.getState().data.entries.map(entry => entry.id);

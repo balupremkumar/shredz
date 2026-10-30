@@ -282,6 +282,8 @@ export function createStore(backend) {
     async deleteFood(id) {
       const records = await backend.getAll('entries');
       if (records.some(record => record.foodId === id)) throw new Error('Food is used by a diary entry');
+      const meals = await backend.getAll('savedMeals');
+      if (meals.some(meal => (meal.items || []).some(item => item.foodId === id))) throw new Error('Food is used by a saved meal');
       await backend.remove('foods', id);
     },
     async saveEntry(value) { await backend.put('entries', entry(value)); },

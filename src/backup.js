@@ -225,7 +225,9 @@ export function mergeData(current, incoming) {
     weights: mergeRecords(current.weights, incoming.weights, 'date')
       .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0),
     savedMeals: mergeRecords(current.savedMeals || [], incoming.savedMeals || [], 'id'),
-    settings: incoming.settings === null ? current.settings : incoming.settings,
+    settings: incoming.settings === null ? current.settings
+      : { ...current.settings, ...incoming.settings,
+        goals: incoming.settings.goals ?? current.settings?.goals },
   };
 }
 

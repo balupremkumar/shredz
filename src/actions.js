@@ -62,6 +62,7 @@ export function createApp({ store, makeId, today }) {
     return updateData({ settings });
   };
   const normaliseWord = word => String(word ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+  const squashWord = word => String(word ?? '').toLowerCase().replace(/[\s\-'’]/g, '');
   const actions = {
     setDate: date => attempt(() => change({ date })),
     goToday: () => attempt(() => change({ date: today() })),
@@ -161,10 +162,11 @@ export function createApp({ store, makeId, today }) {
       if (!food) throw new Error('Food does not exist');
       const alias = normaliseWord(word);
       if (!alias) throw new Error('Word is empty');
+      const squashed = squashWord(alias);
       const taken = [...state.data.foods.filter(item => item.id !== foodId), ...state.data.savedMeals]
-        .find(item => [item.name, ...(item.aliases || [])].some(text => normaliseWord(text) === alias));
+        .find(item => [item.name, ...(item.aliases || [])].some(text => squashWord(text) === squashed));
       if (taken) throw new Error(`Already used for ${taken.name}`);
-      if (normaliseWord(food.name) === alias || (food.aliases || []).includes(alias)) return { ok: true, food: structuredClone(food) };
+      if ([food.name, ...(food.aliases || [])].some(text => squashWord(text) === squashed)) return { ok: true, food: structuredClone(food) };
       const saved = { ...food, aliases: [...(food.aliases || []), alias] };
       await store.saveFood(saved);
       updateData({ foods: state.data.foods.map(item => item.id === foodId ? saved : item) });

@@ -54,6 +54,11 @@ test('goal maths', () => {
   assert.deepEqual(splitFromGrams({ protein: 180, carbs: 240, fat: 80 }), { protein: 30, carbs: 40, fat: 30 });
 });
 
+test('csv fields starting with formula characters are neutralised', () => {
+  assert.equal(toCsv([['=1+1', '+a', '-b', '@c', '\tx', '\ry', -5, 'ok']]),
+    "'=1+1,'+a,'-b,'@c,'\tx,\"'\ry\",-5,ok\r\n");
+});
+
 test('csv output', () => {
   assert.equal(toCsv([['a', 'b,c', 'd"e', 'f\ng', 1.5]]), 'a,"b,c","d""e","f\ng",1.5\r\n');
   const csv = diaryCsv([
@@ -87,8 +92,10 @@ test('recentFoods orders by count, recency, name, then unused A to Z', () => {
 test('quantity steps and weigh-in', () => {
   assert.deepEqual(['item', 'scoop', 'g', 'ml'].map(qtyStep), [1, 1, 25, 50]);
   assert.equal(stepQty(100, 'g', 1), 125);
-  assert.equal(stepQty(30, 'g', -1), 25);
+  assert.equal(stepQty(30, 'g', -1), 5);
   assert.equal(stepQty(25, 'g', -1), 25);
+  assert.equal(stepQty(10, 'g', -1), 10);
+  assert.equal(stepQty(0.5, 'item', -1), 0.5);
   assert.equal(stepQty(1, 'item', -1), 1);
   assert.equal(stepQty(1.5, 'scoop', 1), 2.5);
   assert.equal(needsWeighIn([{ date: '2026-10-30', kg: 80 }], '2026-10-31'), true);

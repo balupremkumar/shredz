@@ -95,6 +95,7 @@ function csvField(value) {
     if (/e/i.test(text)) text = value.toFixed(20).replace(/\.?0+$/, '');
   } else {
     text = value === null || value === undefined ? '' : String(value);
+    if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   }
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
@@ -148,7 +149,8 @@ export function qtyStep(unit) {
 
 export function stepQty(qty, unit, direction) {
   const step = qtyStep(unit);
-  const next = direction < 0 ? Math.max(step, qty - step) : qty + step;
+  if (direction < 0 && qty - step <= 0) return qty;
+  const next = direction < 0 ? qty - step : qty + step;
   return rounded(next, 100);
 }
 

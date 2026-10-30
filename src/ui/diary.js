@@ -192,6 +192,7 @@ function itemRow(app, entry) {
     if (!start) return;
     start = null;
     if (!dragged) return;
+    setTimeout(() => { dragged = false; }, 50);
     if (offset < -OPEN_AT) {
       wrap.dataset.state = 'open';
       front.style.transform = `translateX(${-DELETE_WIDTH}px)`;

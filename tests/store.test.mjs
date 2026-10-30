@@ -168,6 +168,16 @@ test('food deletion protects history until all referencing entries are deleted',
   assert.deepEqual((await store.loadAll()).foods, []);
 });
 
+test('food deletion is refused while a saved meal uses it', async () => {
+  const store = setup();
+  await store.saveFood(makeFood());
+  await store.saveSavedMeal(makeMeal());
+  await assert.rejects(store.deleteFood('oats'), /used by a saved meal/);
+  await store.deleteSavedMeal('usual');
+  await store.deleteFood('oats');
+  assert.deepEqual((await store.loadAll()).foods, []);
+});
+
 test('weights upsert by date, sort ascending and delete by date', async () => {
   const store = setup();
   await store.saveWeight(makeWeight());

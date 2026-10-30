@@ -138,7 +138,9 @@ function foodEdit(root, app, props = {}) {
       busy = false;
       if (!result.ok) {
         showProblem(result.error === 'Food is used by a diary entry'
-          ? "This food is in your diary, so it can't be deleted." : result.error);
+          ? "This food is in your diary, so it can't be deleted."
+          : result.error === 'Food is used by a saved meal'
+            ? "This food is in a saved meal, so it can't be deleted." : result.error);
         return;
       }
       finish();
