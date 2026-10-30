@@ -16,16 +16,25 @@ const makeEntry = (overrides = {}) => ({
   ...overrides,
 });
 const makeWeight = (overrides = {}) => ({ date: '2026-10-31', kg: 80, ...overrides });
-const makeSettings = () => ({ goals: { kcal: 2200, protein: 160, carbs: 240, fat: 60 } });
+const makeMeal = (overrides = {}) => ({
+  id: 'usual', name: 'Usual brekkie', aliases: ['usual'], items: [{ foodId: 'oats', qty: 60 }],
+  ...overrides,
+});
+const makeSettings = () => ({
+  goals: { kcal: 2200, protein: 160, carbs: 240, fat: 60 },
+  goalMode: 'percent', split: { protein: 25, carbs: 45, fat: 30 }, largeText: true,
+});
 const makeData = () => ({
   foods: [makeFood()], entries: [makeEntry()], weights: [makeWeight()], settings: makeSettings(),
+  savedMeals: [makeMeal()],
 });
 const setup = () => createStore(createMemoryBackend());
 
 test('constants, lazy IndexedDB creation and import without IndexedDB', async () => {
   assert.equal(DB_NAME, 'macro-diary');
-  assert.equal(DB_VERSION, 1);
-  assert.deepEqual(DEFAULT_SETTINGS, { goals: { kcal: 2400, protein: 180, carbs: 250, fat: 70 } });
+  assert.equal(DB_VERSION, 2);
+  assert.deepEqual(DEFAULT_SETTINGS, { goals: { kcal: 2400, protein: 180, carbs: 250, fat: 70 },
+    goalMode: 'grams', split: { protein: 30, carbs: 40, fat: 30 }, largeText: false });
   assert.equal(globalThis.indexedDB, undefined);
   const backend = createIdbBackend();
   await assert.rejects(backend.getAll('foods'), /IndexedDB is unavailable/);
@@ -36,7 +45,7 @@ test('constants, lazy IndexedDB creation and import without IndexedDB', async ()
 test('empty store supplies independent default settings', async () => {
   const store = setup();
   const empty = await store.loadAll();
-  assert.deepEqual(empty, { foods: [], entries: [], weights: [], settings: DEFAULT_SETTINGS });
+  assert.deepEqual(empty, { foods: [], entries: [], weights: [], savedMeals: [], settings: DEFAULT_SETTINGS });
   empty.settings.goals.kcal = 1;
   assert.equal((await store.loadAll()).settings.goals.kcal, 2400);
   assert.equal(DEFAULT_SETTINGS.goals.kcal, 2400);
@@ -50,7 +59,9 @@ test('all record types round-trip and saved and loaded objects are isolated', as
   await store.saveEntry(data.entries[0]);
   await store.saveWeight(data.weights[0]);
   await store.saveSettings(data.settings);
+  await store.saveSavedMeal(data.savedMeals[0]);
   data.foods[0].aliases.push('changed');
+  data.savedMeals[0].items[0].qty = 1;
   data.entries[0].qty = 1;
   data.weights[0].kg = 1;
   data.settings.goals.kcal = 1;
@@ -60,6 +71,7 @@ test('all record types round-trip and saved and loaded objects are isolated', as
   loaded.entries[0].qty = 2;
   loaded.weights[0].kg = 2;
   loaded.settings.goals.kcal = 2;
+  loaded.savedMeals[0].items[0].qty = 2;
   assert.deepEqual(await store.loadAll(), expected);
 });
 
@@ -217,7 +229,9 @@ test('replaceAll replaces all four record types and removes obsolete keys', asyn
     foods: [makeFood({ id: 'rice', name: 'Rice' })],
     entries: [makeEntry({ id: 'dinner', foodId: 'rice', meal: 3 })],
     weights: [makeWeight({ date: '2026-11-01', kg: 79 })],
-    settings: { goals: { kcal: 2000, protein: 150, carbs: 200, fat: 65 } },
+    settings: { goals: { kcal: 2000, protein: 150, carbs: 200, fat: 65 }, goalMode: 'grams',
+      split: { protein: 30, carbs: 40, fat: 30 }, largeText: false },
+    savedMeals: [makeMeal({ id: 'dinner-set', name: 'Dinner', items: [{ foodId: 'rice', qty: 150 }] })],
   };
   const expected = structuredClone(replacement);
   await store.replaceAll(replacement);
@@ -225,8 +239,8 @@ test('replaceAll replaces all four record types and removes obsolete keys', asyn
   replacement.settings.goals.kcal = 1;
   assert.deepEqual(await store.loadAll(), expected);
   assert.deepEqual(await backend.getAll('settings'), [{ key: 'settings', ...expected.settings }]);
-  await store.replaceAll({ foods: [], entries: [], weights: [], settings: makeSettings() });
-  assert.deepEqual(await store.loadAll(), { foods: [], entries: [], weights: [], settings: makeSettings() });
+  await store.replaceAll({ foods: [], entries: [], weights: [], savedMeals: [], settings: makeSettings() });
+  assert.deepEqual(await store.loadAll(), { foods: [], entries: [], weights: [], savedMeals: [], settings: makeSettings() });
 });
 
 test('failed memory replacement preserves every old store after staging earlier records', async () => {
@@ -250,4 +264,64 @@ test('failed memory replacement preserves every old store after staging earlier 
   await assert.rejects(store.replaceAll(incoming), /Record needs a key/);
   assert.equal(calls, 1);
   assert.deepEqual(await store.loadAll(), previous);
+});
+
+test('saved meals save, load sorted by name, delete and validate', async () => {
+  const store = setup();
+  await store.saveSavedMeal(makeMeal({ id: 'b', name: 'banana smoothie' }));
+  await store.saveSavedMeal(makeMeal({ id: 'a', name: '  Apple pack ' }));
+  await store.saveSavedMeal(makeMeal({ id: 'c', name: 'Cereal' }));
+  assert.deepEqual((await store.loadAll()).savedMeals.map(meal => meal.name),
+    ['Apple pack', 'banana smoothie', 'Cereal']);
+  await store.deleteSavedMeal('b');
+  assert.deepEqual((await store.loadAll()).savedMeals.map(meal => meal.id), ['a', 'c']);
+  const items = count => Array.from({ length: count }, () => ({ foodId: 'oats', qty: 1 }));
+  for (const bad of [
+    null, { id: '' }, { name: '   ' }, { name: 'a'.repeat(201) }, { aliases: 'x' }, { aliases: [1] },
+    { aliases: Array(51).fill('a') }, { aliases: ['a'.repeat(101)] }, { items: [] }, { items: items(51) },
+    { items: null }, { items: [{ foodId: '', qty: 1 }] }, { items: [{ foodId: 'oats', qty: 0 }] },
+    { items: [{ foodId: 'oats', qty: Infinity }] }, { items: [{ foodId: 'oats', qty: 1e6 + 1 }] },
+  ]) {
+    await assert.rejects(store.saveSavedMeal(bad === null ? null : makeMeal(bad)), TypeError);
+  }
+  await store.saveSavedMeal(makeMeal({ id: 'edge', name: 'a'.repeat(200), items: items(50),
+    aliases: Array(50).fill('a'.repeat(100)) }));
+  assert.equal((await store.loadAll()).savedMeals.length, 3);
+});
+
+test('replaceAll carries saved meals, treats absent ones as empty and rejects bad ones', async () => {
+  const store = setup();
+  await store.replaceAll(makeData());
+  assert.deepEqual((await store.loadAll()).savedMeals, [makeMeal()]);
+  const { savedMeals, ...without } = makeData();
+  await store.replaceAll(without);
+  assert.deepEqual((await store.loadAll()).savedMeals, []);
+  await store.replaceAll(makeData());
+  await assert.rejects(store.replaceAll({ ...makeData(), savedMeals: [makeMeal({ items: [] })] }), TypeError);
+  await assert.rejects(store.replaceAll({ ...makeData(), savedMeals: null }), TypeError);
+  assert.deepEqual((await store.loadAll()).savedMeals, [makeMeal()]);
+});
+
+test('a goals only settings record loads with defaults filled in', async () => {
+  const backend = createMemoryBackend();
+  const goals = { kcal: 2000, protein: 150, carbs: 200, fat: 65 };
+  await backend.put('settings', { key: 'settings', goals });
+  const loaded = (await createStore(backend).loadAll()).settings;
+  assert.deepEqual(loaded, { goals, goalMode: 'grams', split: { protein: 30, carbs: 40, fat: 30 }, largeText: false });
+  const store = setup();
+  await store.saveSettings({ goals });
+  assert.deepEqual((await store.loadAll()).settings, loaded);
+});
+
+test('settings reject a bad goal mode, split or larger text value', async () => {
+  const store = setup();
+  const goals = makeSettings().goals;
+  for (const change of [
+    { goalMode: 'carbs' }, { goalMode: null }, { split: { protein: 50, carbs: 40, fat: 30 } },
+    { split: { protein: 30.5, carbs: 39.5, fat: 30 } }, { split: { protein: -10, carbs: 60, fat: 50 } },
+    { split: { protein: 30, carbs: 70 } }, { split: null }, { largeText: 'yes' },
+  ]) {
+    await assert.rejects(store.saveSettings({ goals, ...change }), TypeError);
+  }
+  await assert.rejects(store.replaceAll({ ...makeData(), settings: { goals, goalMode: 'x' } }), TypeError);
 });

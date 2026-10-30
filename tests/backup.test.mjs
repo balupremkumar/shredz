@@ -23,7 +23,7 @@ function fixture() {
   ], weights: [
     { date: '2026-10-29', kg: 82.5 }, { date: '2026-10-30', kg: 82.3 },
     { date: '2026-10-31', kg: 82.1 },
-  ], settings: { goals: { kcal: 2200, protein: 150, carbs: 250, fat: 65 } } };
+  ], savedMeals: [], settings: { goals: { kcal: 2200, protein: 150, carbs: 250, fat: 65 } } };
 }
 const encode = data => exportBackup(data, ts);
 function rejects(text, line) {
@@ -40,8 +40,8 @@ test('realistic backup round trip, envelope, formatting and dated file name', ()
   const data = fixture();
   const text = encode(data);
   assert.deepEqual(parseBackup(text), data);
-  assert.equal(BACKUP_SCHEMA, 1);
-  assert.deepEqual(JSON.parse(text), { app: 'macro-diary', schema: 1, exportedAt: ts, ...data });
+  assert.equal(BACKUP_SCHEMA, 2);
+  assert.deepEqual(JSON.parse(text), { app: 'macro-diary', schema: 2, exportedAt: ts, ...data });
   assert.equal(text, JSON.stringify(JSON.parse(text), null, 2));
   assert.equal(backupFileName('2026-10-31'), 'macro-diary-2026-10-31.json');
 });
@@ -50,9 +50,9 @@ test('foods-only imports fill defaults, including missing aliases', () => {
   const food = fixture().foods[0];
   delete food.aliases;
   assert.deepEqual(parseBackup(JSON.stringify({ app: 'macro-diary', schema: 1, foods: [food] })),
-    { foods: [{ ...food, aliases: [] }], entries: [], weights: [], settings: null });
+    { foods: [{ ...food, aliases: [] }], entries: [], weights: [], savedMeals: [], settings: null });
   assert.deepEqual(parseBackup(encode({ foods: [], entries: [], weights: [], settings: null })),
-    { foods: [], entries: [], weights: [], settings: null });
+    { foods: [], entries: [], weights: [], savedMeals: [], settings: null });
 });
 
 test('invalid JSON, app and future or non-numeric schema report specific problems', () => {
@@ -61,8 +61,8 @@ test('invalid JSON, app and future or non-numeric schema report specific problem
   rejects('[]', 'backup: must be an object');
   for (const [key, value, line] of [
     ['app', 'other', 'app: must be macro-diary'],
-    ['schema', 2, 'schema: must be a number no greater than 1'],
-    ['schema', '1', 'schema: must be a number no greater than 1'],
+    ['schema', 3, 'schema: must be a number no greater than 2'],
+    ['schema', '1', 'schema: must be a number no greater than 2'],
   ]) {
     rejects(JSON.stringify({ ...JSON.parse(encode(fixture())), [key]: value }), line);
   }
@@ -188,9 +188,9 @@ test('merge resolves clashes in place, appends new ids, sorts weights and preser
 });
 
 test('summarise counts records and distinct entry dates', () => {
-  assert.deepEqual(summarise(fixture()), { foods: 6, entries: 4, weights: 3, days: 2 });
+  assert.deepEqual(summarise(fixture()), { foods: 6, entries: 4, weights: 3, savedMeals: 0, days: 2 });
   assert.deepEqual(summarise({ foods: [], entries: [], weights: [] }),
-    { foods: 0, entries: 0, weights: 0, days: 0 });
+    { foods: 0, entries: 0, weights: 0, savedMeals: 0, days: 0 });
 });
 
 test('backup module imports nothing', () => {
@@ -256,4 +256,63 @@ test('backup accepts limits inclusively and valid leap days', () => {
     invalid.settings.goals[field] = 1e7;
     rejects(encode(invalid), `settings.goals: ${field} must be at most 1000000`);
   }
+});
+
+const mealFixture = () => [
+  { id: 'brekkie', name: 'Brekkie', aliases: ['usual'], items: [{ foodId: 'egg', qty: 2 }, { foodId: 'milk', qty: 250 }] },
+];
+const fullSettings = () => ({ goals: { kcal: 2200, protein: 150, carbs: 250, fat: 65 },
+  goalMode: 'percent', split: { protein: 30, carbs: 40, fat: 30 }, largeText: true });
+
+test('schema 2 round trip keeps saved meals and the new settings', () => {
+  const data = { ...fixture(), savedMeals: mealFixture(), settings: fullSettings() };
+  const text = encode(data);
+  assert.equal(JSON.parse(text).schema, 2);
+  assert.deepEqual(parseBackup(text), data);
+});
+
+test('schema 1 files still import, with no saved meals and goals only settings', () => {
+  const { savedMeals, ...old } = fixture();
+  const text = JSON.stringify({ app: 'macro-diary', schema: 1, exportedAt: ts, ...old });
+  assert.deepEqual(parseBackup(text), fixture());
+});
+
+test('saved meals are validated, whitelisted and checked against foods', () => {
+  const data = { ...fixture(), savedMeals: mealFixture() };
+  data.savedMeals[0].items[0].foodId = 'ghost';
+  rejects(encode(data), 'savedMeals[0].items[0]: foodId ghost does not identify a known food');
+  assert.equal(parseBackup(encode(data), new Set(['ghost'])).savedMeals.length, 1);
+  const bad = (change, line) => {
+    const copy = { ...fixture(), savedMeals: mealFixture() };
+    change(copy.savedMeals[0]);
+    rejects(encode(copy), line);
+  };
+  bad(meal => { meal.name = '  '; }, 'savedMeals[0]: name must be a non-empty string');
+  bad(meal => { meal.items = []; }, 'savedMeals[0]: items must be an array of 1 to 50 items');
+  bad(meal => { meal.items[0].qty = 0; }, 'savedMeals[0].items[0]: qty must be a positive number');
+  bad(meal => { meal.aliases = Array(51).fill('a'); }, 'savedMeals[0]: aliases must contain at most 50 aliases');
+  const extra = { ...fixture(), savedMeals: mealFixture() };
+  extra.savedMeals[0].extra = 'discard';
+  extra.savedMeals[0].items[0].extra = 'discard';
+  extra.savedMeals[0].name = '  Brekkie ';
+  assert.deepEqual(parseBackup(encode(extra)).savedMeals, mealFixture());
+});
+
+test('new settings fields are validated when present', () => {
+  for (const [change, line] of [
+    [{ goalMode: 'carbs' }, 'settings: goalMode must be grams or percent'],
+    [{ split: { protein: 50, carbs: 40, fat: 30 } }, 'settings: split must add to 100'],
+    [{ largeText: 'yes' }, 'settings: largeText must be true or false'],
+  ]) {
+    rejects(encode({ ...fixture(), settings: { ...fullSettings(), ...change } }), line);
+  }
+});
+
+test('merge combines saved meals by id with incoming winning, and summarise counts them', () => {
+  const current = { ...fixture(), savedMeals: mealFixture() };
+  const incoming = { ...fixture(), savedMeals: [{ ...mealFixture()[0], name: 'Changed' },
+    { ...mealFixture()[0], id: 'second' }], settings: null };
+  const merged = mergeData(current, incoming);
+  assert.deepEqual(merged.savedMeals.map(meal => [meal.id, meal.name]), [['brekkie', 'Changed'], ['second', 'Brekkie']]);
+  assert.equal(summarise(merged).savedMeals, 2);
 });

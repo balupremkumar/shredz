@@ -1,4 +1,4 @@
-export const BACKUP_SCHEMA = 1;
+export const BACKUP_SCHEMA = 2;
 
 const nutrients = ['kcal', 'protein', 'carbs', 'fat'];
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -19,9 +19,9 @@ export function backupFileName(date) {
   return `macro-diary-${date}.json`;
 }
 
-export function exportBackup({ foods, entries, weights, settings }, exportedAt) {
+export function exportBackup({ foods, entries, weights, settings, savedMeals = [] }, exportedAt) {
   return JSON.stringify({ app: 'macro-diary', schema: BACKUP_SCHEMA, exportedAt,
-    foods, entries, weights, settings }, null, 2);
+    foods, entries, weights, savedMeals, settings }, null, 2);
 }
 
 export class BackupError extends Error {
@@ -136,13 +136,76 @@ export function parseBackup(text, knownFoodIds = new Set()) {
     check(path, 'kg', positive(weight.kg) && weight.kg < 500, 'must be greater than 0 and under 500');
     return pick(weight, ['date', 'kg']);
   });
+  let meals = file.savedMeals === undefined ? [] : file.savedMeals;
+  if (!Array.isArray(meals)) {
+    problem('savedMeals', 'must be an array');
+    meals = [];
+  } else if (meals.length > 20000) {
+    problem('savedMeals', 'must contain at most 20000 records');
+    meals = [];
+  }
+  const mealIds = new Set();
+  data.savedMeals = meals.map((meal, index) => {
+    const path = `savedMeals[${index}]`;
+    if (!isObject(meal)) return problem(path, 'must be an object');
+    checkId(meal.id, path);
+    unique(meal.id, mealIds, path, 'id');
+    check(path, 'name', typeof meal.name === 'string' && meal.name.trim().length > 0,
+      'must be a non-empty string');
+    check(path, 'name', typeof meal.name !== 'string' || meal.name.trim().length <= 200,
+      'must contain at most 200 characters after trimming');
+    const aliases = meal.aliases === undefined ? [] : meal.aliases;
+    check(path, 'aliases', Array.isArray(aliases) && aliases.every(alias => typeof alias === 'string'),
+      'must be an array of strings');
+    if (Array.isArray(aliases)) {
+      check(path, 'aliases', aliases.length <= 50, 'must contain at most 50 aliases');
+      check(path, 'aliases', aliases.every(alias => typeof alias !== 'string' || alias.length <= 100),
+        'must contain at most 100 characters each');
+    }
+    check(path, 'items', Array.isArray(meal.items) && meal.items.length >= 1 && meal.items.length <= 50,
+      'must be an array of 1 to 50 items');
+    const items = Array.isArray(meal.items) ? meal.items.map((item, itemIndex) => {
+      const itemPath = `${path}.items[${itemIndex}]`;
+      if (!isObject(item)) return problem(itemPath, 'must be an object');
+      check(itemPath, 'foodId', typeof item.foodId === 'string' && item.foodId.trim().length > 0,
+        'must be a non-empty string');
+      if (typeof item.foodId === 'string' && item.foodId.trim().length > 0 && !foodIds.has(item.foodId)) {
+        problem(itemPath, `foodId ${item.foodId} does not identify a known food`);
+      }
+      check(itemPath, 'qty', positive(item.qty), 'must be a positive number');
+      check(itemPath, 'qty', !Number.isFinite(item.qty) || item.qty <= 1e6, 'must be at most 1000000');
+      return pick(item, ['foodId', 'qty']);
+    }) : [];
+    return { id: meal.id, name: typeof meal.name === 'string' ? meal.name.trim() : meal.name,
+      aliases, items };
+  });
   data.settings = file.settings === undefined ? null : file.settings;
   if (data.settings !== null) {
     if (!isObject(data.settings) || !isObject(data.settings.goals)) {
       problem('settings', 'goals must be an object');
     } else {
-      checkNutrients(data.settings.goals, 'settings.goals');
-      data.settings = { goals: pick(data.settings.goals, nutrients) };
+      const raw = data.settings;
+      checkNutrients(raw.goals, 'settings.goals');
+      data.settings = { goals: pick(raw.goals, nutrients) };
+      if (raw.goalMode !== undefined) {
+        check('settings', 'goalMode', ['grams', 'percent'].includes(raw.goalMode), 'must be grams or percent');
+        data.settings.goalMode = raw.goalMode;
+      }
+      if (raw.split !== undefined) {
+        const parts = ['protein', 'carbs', 'fat'];
+        const valid = isObject(raw.split)
+          && parts.every(part => Number.isInteger(raw.split[part]) && raw.split[part] >= 0 && raw.split[part] <= 100);
+        check('settings', 'split', valid, 'must hold whole numbers from 0 to 100 for protein, carbs and fat');
+        if (valid) {
+          check('settings', 'split', parts.reduce((sum, part) => sum + raw.split[part], 0) === 100,
+            'must add to 100');
+        }
+        data.settings.split = isObject(raw.split) ? pick(raw.split, parts) : raw.split;
+      }
+      if (raw.largeText !== undefined) {
+        check('settings', 'largeText', typeof raw.largeText === 'boolean', 'must be true or false');
+        data.settings.largeText = raw.largeText;
+      }
     }
   }
   if (problems.length) throw new BackupError(problems);
@@ -161,11 +224,12 @@ export function mergeData(current, incoming) {
     entries: mergeRecords(current.entries, incoming.entries, 'id'),
     weights: mergeRecords(current.weights, incoming.weights, 'date')
       .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0),
+    savedMeals: mergeRecords(current.savedMeals || [], incoming.savedMeals || [], 'id'),
     settings: incoming.settings === null ? current.settings : incoming.settings,
   };
 }
 
 export function summarise(data) {
   return { foods: data.foods.length, entries: data.entries.length, weights: data.weights.length,
-    days: new Set(data.entries.map(entry => entry.date)).size };
+    savedMeals: (data.savedMeals || []).length, days: new Set(data.entries.map(entry => entry.date)).size };
 }
