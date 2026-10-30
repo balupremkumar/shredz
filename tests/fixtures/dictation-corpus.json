@@ -1,0 +1,4711 @@
+[
+  {
+    "id": "bind-01",
+    "category": "bind",
+    "text": "Weet-Bix, 3 servings, Chicken breast, 100 grams,",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Verbatim owner failure. Current parser produced Chicken breast x 100 grams.",
+    "status": "must"
+  },
+  {
+    "id": "bind-02",
+    "category": "bind",
+    "chunks": [
+      "Weet-Bix, 3 servings,",
+      "Chicken breast, 100 grams,"
+    ],
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Same utterance split across two dictation chunks (joined with a space, as the textarea does).",
+    "status": "must"
+  },
+  {
+    "id": "bind-03",
+    "category": "bind",
+    "text": "Weet-Bix, 3 servings. Chicken breast, 100 grams.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "bind-04",
+    "category": "bind",
+    "text": "Weet-Bix 3 servings chicken breast 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "No punctuation at all: unit-bearing amount must bind to the food it trails.",
+    "status": "must"
+  },
+  {
+    "id": "bind-05",
+    "category": "bind",
+    "text": "Weet-Bix, 3 servings, chicken breast, 100 grams, save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "bind-06",
+    "category": "bind",
+    "text": "Weet-Bix, 3, chicken breast, 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Comma after a bare number closes the item; the 3 must not carry on to chicken.",
+    "status": "must"
+  },
+  {
+    "id": "bind-07",
+    "category": "bind",
+    "text": "Weet-Bix 3, chicken breast 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "bind-08",
+    "category": "bind",
+    "chunks": [
+      "Weet-Bix,",
+      "3 servings,",
+      "Chicken breast,",
+      "100 grams,"
+    ],
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Four tiny chunks, as a stop-start dictation would arrive.",
+    "status": "must"
+  },
+  {
+    "id": "bind-09",
+    "category": "bind",
+    "text": "Rice, 150 grams, Weet-Bix, 3 servings,",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "bind-10",
+    "category": "bind",
+    "text": "Chicken breast, 100 grams, Weet-Bix, 3 servings,",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Reverse order of the verbatim failure.",
+    "status": "must"
+  },
+  {
+    "id": "bind-11",
+    "category": "bind",
+    "text": "Egg, 3, whey, 2 scoops,",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "whey",
+              "qty": 2,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "bind-12",
+    "category": "bind",
+    "text": "Milk, 300 mils, Weet-Bix, 3 servings,",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 300,
+              "unit": "ml"
+            },
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-01",
+    "category": "order",
+    "text": "100 grams of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-02",
+    "category": "order",
+    "text": "chicken breast 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-03",
+    "category": "order",
+    "text": "chicken breast, 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-04",
+    "category": "order",
+    "text": "chicken breast 100g",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-05",
+    "category": "order",
+    "text": "100g chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-06",
+    "category": "order",
+    "text": "100 grams chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-07",
+    "category": "order",
+    "text": "100 g of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-08",
+    "category": "order",
+    "text": "chicken 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-09",
+    "category": "order",
+    "text": "chicken breast 100 gms",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-10",
+    "category": "order",
+    "text": "100 grams, chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Comma between amount and food: amount-first binds forward when nothing precedes it.",
+    "status": "should"
+  },
+  {
+    "id": "order-11",
+    "category": "order",
+    "text": "rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "order-12",
+    "category": "order",
+    "text": "150 grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "serving-01",
+    "category": "serving",
+    "text": "Weet-Bix 3 servings",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "serving-02",
+    "category": "serving",
+    "text": "3 servings of Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "serving-03",
+    "category": "serving",
+    "text": "one serving of Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Rule (confirm): item and scoop foods, N servings = N units.",
+    "status": "must"
+  },
+  {
+    "id": "serving-04",
+    "category": "serving",
+    "text": "Weet-Bix 2 serves",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "serving-05",
+    "category": "serving",
+    "text": "a serve of whey",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Rule: scoop food, 1 serving = 1 scoop.",
+    "status": "must"
+  },
+  {
+    "id": "serving-06",
+    "category": "serving",
+    "text": "2 servings of protein",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 2,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "serving-07",
+    "category": "serving",
+    "text": "3 servings of cheese",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cheese",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "serving-08",
+    "category": "serving",
+    "text": "chicken breast 2 servings",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 300,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "RULE TO CONFIRM: g/ml foods, N servings = N x defaultQty (150 g x 2).",
+    "status": "should"
+  },
+  {
+    "id": "serving-09",
+    "category": "serving",
+    "text": "a serving of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "RULE TO CONFIRM: 1 serving = defaultQty for g/ml foods.",
+    "status": "should"
+  },
+  {
+    "id": "serving-10",
+    "category": "serving",
+    "text": "two servings of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 300,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "RULE TO CONFIRM: N x defaultQty.",
+    "status": "should"
+  },
+  {
+    "id": "serving-11",
+    "category": "serving",
+    "text": "3 serves of cashews",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cashews",
+              "qty": 60,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "RULE TO CONFIRM: N x defaultQty (20 g x 3).",
+    "status": "should"
+  },
+  {
+    "id": "serving-12",
+    "category": "serving",
+    "text": "half a serving of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 75,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "RULE TO CONFIRM: 0.5 x 150 g.",
+    "status": "should"
+  },
+  {
+    "id": "serving-13",
+    "category": "serving",
+    "text": "2 servings of eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Literal rule gives 2, but defaultQty is 2 so the owner might mean 4. Owner to confirm for default-2 item foods (egg, toast, rice cake).",
+    "status": "ambiguous"
+  },
+  {
+    "id": "serving-14",
+    "category": "serving",
+    "text": "a serving of toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Same default-2 item question as eggs.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "sep-01",
+    "category": "sep",
+    "text": "milk 200 mils and 2 weet bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-02",
+    "category": "sep",
+    "text": "2 weet bix and milk 200 mils",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-03",
+    "category": "sep",
+    "text": "2 eggs, 150 grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-04",
+    "category": "sep",
+    "text": "2 eggs 150 grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-05",
+    "category": "sep",
+    "text": "eggs 2 rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-06",
+    "category": "sep",
+    "text": "100 grams chicken breast 150 grams rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Amount-first for both foods, no separator.",
+    "status": "must"
+  },
+  {
+    "id": "sep-07",
+    "category": "sep",
+    "text": "chicken breast 100 grams and rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-08",
+    "category": "sep",
+    "text": "chicken breast and rice 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "One amount after two foods joined by \"and\": rice only, or both? Owner to decide.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "sep-09",
+    "category": "sep",
+    "text": "chicken breast, rice, cashews",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "All defaults.",
+    "status": "must"
+  },
+  {
+    "id": "sep-10",
+    "category": "sep",
+    "text": "chicken breast 100 grams, rice, cashews 30 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 30,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "sep-11",
+    "category": "sep",
+    "text": "rice, 100 grams of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Amount after a comma and followed by \"of food\" belongs to the following food.",
+    "status": "should"
+  },
+  {
+    "id": "sep-12",
+    "category": "sep",
+    "text": "chicken breast 100 grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "No comma: \"100 grams of rice\" binds forward but \"chicken breast 100 grams\" also reads naturally. Owner to confirm \"of\" beats adjacency.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "sep-13",
+    "category": "sep",
+    "text": "Chicken breast. 100 grams.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "iOS full stop between food and amount; nothing follows, so amount binds back.",
+    "status": "should"
+  },
+  {
+    "id": "sep-14",
+    "category": "sep",
+    "text": "Chicken breast. 100 grams. Rice. 150 grams.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "words-01",
+    "category": "words",
+    "text": "one hundred and fifty grams of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Parser knows only one..twenty.",
+    "status": "should"
+  },
+  {
+    "id": "words-02",
+    "category": "words",
+    "text": "a hundred grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "words-03",
+    "category": "words",
+    "text": "a hundred and twenty five grams of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "words-04",
+    "category": "words",
+    "text": "two hundred ml of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "words-05",
+    "category": "words",
+    "text": "twenty grams of cashews",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "words-06",
+    "category": "words",
+    "text": "twenty five grams of cashews",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cashews",
+              "qty": 25,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "words-07",
+    "category": "words",
+    "text": "one fifty grams of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Ambiguous: \"one fifty\" is 150 colloquially but could be 1 then 50. 150 is the likely intent.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "words-08",
+    "category": "words",
+    "text": "one twenty five grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 125,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Same colloquial hundreds-dropping as \"one fifty\".",
+    "status": "ambiguous"
+  },
+  {
+    "id": "words-09",
+    "category": "words",
+    "text": "three Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "words-10",
+    "category": "words",
+    "text": "six eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 6,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "words-11",
+    "category": "words",
+    "text": "half a dozen eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 6,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "words-12",
+    "category": "words",
+    "text": "two and a half scoops of whey",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 2.5,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "unit-01",
+    "category": "unit",
+    "text": "200 ml milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-02",
+    "category": "unit",
+    "text": "200ml of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-03",
+    "category": "unit",
+    "text": "200 mils of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-04",
+    "category": "unit",
+    "text": "200 millilitres of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-05",
+    "category": "unit",
+    "text": "two hundred mL of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "unit-06",
+    "category": "unit",
+    "text": "a litre of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 1000,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "unit-07",
+    "category": "unit",
+    "text": "half a litre of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 500,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-08",
+    "category": "unit",
+    "text": "200 mills of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Mis-hear of mils.",
+    "status": "should"
+  },
+  {
+    "id": "unit-09",
+    "category": "unit",
+    "text": "150 g chicken",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-10",
+    "category": "unit",
+    "text": "0.5 kg of chicken breast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 500,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unit-11",
+    "category": "unit",
+    "text": "half a kilo of chicken",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 500,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "unit-12",
+    "category": "unit",
+    "text": "1,000 ml of milk",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 1000,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "iOS inserts thousands commas for large numbers; the comma must not split the number.",
+    "status": "should"
+  },
+  {
+    "id": "art-01",
+    "category": "art",
+    "text": "a Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-02",
+    "category": "art",
+    "text": "an egg",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-03",
+    "category": "art",
+    "text": "a slice of toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-04",
+    "category": "art",
+    "text": "two slices of bread",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-05",
+    "category": "art",
+    "text": "a rice cake",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "ricecake",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-06",
+    "category": "art",
+    "text": "a couple of eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "a couple of = 2.",
+    "status": "should"
+  },
+  {
+    "id": "art-07",
+    "category": "art",
+    "text": "half a scoop of whey",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 0.5,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-08",
+    "category": "art",
+    "text": "half a Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 0.5,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "art-09",
+    "category": "art",
+    "text": "half an egg",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 0.5,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "art-10",
+    "category": "art",
+    "text": "one and a half scoops of whey",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 1.5,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "art-11",
+    "category": "art",
+    "text": "one and a half slices of toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 1.5,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "art-12",
+    "category": "art",
+    "text": "a scoop of protein",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "meal-01",
+    "category": "meal",
+    "text": "Meal number two, 2 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "meal-02",
+    "category": "meal",
+    "text": "for meal 3 2 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 3,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "meal-03",
+    "category": "meal",
+    "text": "Meal 1. 2 Weet-Bix. Meal 2. chicken breast 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "meal-04",
+    "category": "meal",
+    "text": "meal two chicken meal one rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Meals returned sorted by number.",
+    "status": "must"
+  },
+  {
+    "id": "meal-05",
+    "category": "meal",
+    "text": "2 eggs meal two toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Default meal 1 before the first marker.",
+    "status": "must"
+  },
+  {
+    "id": "meal-06",
+    "category": "meal",
+    "text": "meal to, 2 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "to/too for two before a food.",
+    "status": "should"
+  },
+  {
+    "id": "meal-07",
+    "category": "meal",
+    "text": "meal for, 2 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 4,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "for/four mis-hear; \"meal for\" also reads as plain English.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "meal-08",
+    "category": "meal",
+    "text": "Meal one? 2 Weet-Bix.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Uptalk question mark after a marker.",
+    "status": "must"
+  },
+  {
+    "id": "meal-09",
+    "category": "meal",
+    "text": "breakfast 2 eggs and 2 slices of toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "UNSUPPORTED: parser has no named meals. Currently \"breakfast\" is unmatched leftover and items land in the default meal.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "meal-10",
+    "category": "meal",
+    "text": "lunch chicken breast 100 grams and rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "UNSUPPORTED named meal.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "meal-11",
+    "category": "meal",
+    "text": "meal number 2, 2 eggs, meal number 3, 3 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        },
+        {
+          "meal": 3,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "meal-12",
+    "category": "meal",
+    "text": "Meal 2 2 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Marker digit directly followed by quantity digit.",
+    "status": "must"
+  },
+  {
+    "id": "fix-01",
+    "category": "fix",
+    "text": "chicken 150 actually 200 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "actually/no wait: what follows overrides.",
+    "status": "should"
+  },
+  {
+    "id": "fix-02",
+    "category": "fix",
+    "text": "3 Weet-Bix, no wait, 2 Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "fix-03",
+    "category": "fix",
+    "text": "no wait, two Weet-Bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Marker with nothing to correct; just drop the marker.",
+    "status": "should"
+  },
+  {
+    "id": "fix-04",
+    "category": "fix",
+    "text": "rice 100 grams sorry 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "fix-05",
+    "category": "fix",
+    "text": "milk 200 mils actually make that 300",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 300,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "fix-06",
+    "category": "fix",
+    "text": "2 eggs scratch that 3 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "iOS does not process \"scratch that\"; Quiett does. Parser decision.",
+    "status": "should"
+  },
+  {
+    "id": "fix-07",
+    "category": "fix",
+    "text": "rice 150 grams scratch that",
+    "expected": {
+      "meals": [],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Scratch with nothing after: delete the last item? Owner to decide.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "fix-08",
+    "category": "fix",
+    "text": "actually rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Leading \"actually\" is a filler, not an unmatched food.",
+    "status": "should"
+  },
+  {
+    "id": "fix-09",
+    "category": "fix",
+    "text": "rice 150 grams no wait chicken breast 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Correction swaps food: replace rice, or add chicken as well? Owner to decide.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "fix-10",
+    "category": "fix",
+    "text": "chicken breast 100 grams, actually, 120 grams, and rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 120,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "save-01",
+    "category": "save",
+    "text": "chicken breast 100 grams save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "save-02",
+    "category": "save",
+    "text": "Chicken breast 100 grams. Save.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "save-03",
+    "category": "save",
+    "text": "Chicken breast 100 grams. Save?",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "Uptalk on the command.",
+    "status": "must"
+  },
+  {
+    "id": "save-04",
+    "category": "save",
+    "text": "chicken breast 100 grams and save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "\"and\" before save is joining filler.",
+    "status": "should"
+  },
+  {
+    "id": "save-05",
+    "category": "save",
+    "text": "chicken breast 100 grams please save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "\"please\" must not become an unmatched food.",
+    "status": "should"
+  },
+  {
+    "id": "save-06",
+    "category": "save",
+    "text": "save",
+    "expected": {
+      "meals": [],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "save-07",
+    "category": "save",
+    "text": "chicken breast 100 grams that is all",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "Other terminators (\"that is all\", \"log it\") unsupported; owner call.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "save-08",
+    "category": "save",
+    "chunks": [
+      "Chicken breast, 100 grams,",
+      "Save."
+    ],
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "Save arrives as its own chunk.",
+    "status": "must"
+  },
+  {
+    "id": "hear-01",
+    "category": "hear",
+    "text": "wheat bix 2",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-02",
+    "category": "hear",
+    "text": "wheetbix 2",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-03",
+    "category": "hear",
+    "text": "weet bicks 2",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Not an alias; needs fuzzy match or extra alias.",
+    "status": "should"
+  },
+  {
+    "id": "hear-04",
+    "category": "hear",
+    "text": "20 grams of Cashew's",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-05",
+    "category": "hear",
+    "text": "kumara 200 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "kumara",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-06",
+    "category": "hear",
+    "text": "200 grams of kumera",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "kumara",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "hear-07",
+    "category": "hear",
+    "text": "150 grams of basmati rights",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Mis-hear of rice; \"basmati\" alone is an alias so partial match should win.",
+    "status": "should"
+  },
+  {
+    "id": "hear-08",
+    "category": "hear",
+    "text": "chicken breath 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "hear-09",
+    "category": "hear",
+    "text": "tasty protein bar",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "bar",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Tasti heard as tasty.",
+    "status": "should"
+  },
+  {
+    "id": "hear-10",
+    "category": "hear",
+    "text": "tiptop toast 2",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-11",
+    "category": "hear",
+    "text": "tip top bread, 2 slices",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-12",
+    "category": "hear",
+    "text": "green top 200 mils",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-13",
+    "category": "hear",
+    "text": "scorpion 2 scoops",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 2,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "hear-14",
+    "category": "hear",
+    "text": "pams cheese wedge",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cheese",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Name is \"Pams cheese wedge\" but listed aliases are cheese/wedge forms; \"pams cheese\" alone is not an alias.",
+    "status": "should"
+  },
+  {
+    "id": "punct-01",
+    "category": "punct",
+    "text": "Weet-Bix. Chicken breast.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "punct-02",
+    "category": "punct",
+    "text": "2 Weet-Bix?",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "punct-03",
+    "category": "punct",
+    "text": "Rice, 150 grams? Chicken breast, 100 grams?",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Uptalk question marks mid-list.",
+    "status": "must"
+  },
+  {
+    "id": "punct-04",
+    "category": "punct",
+    "text": "Chicken breast... 100 grams... rice... 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Ellipses used as pauses.",
+    "status": "should"
+  },
+  {
+    "id": "punct-05",
+    "category": "punct",
+    "text": "Weet-Bix - 3 servings, Chicken breast - 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "punct-06",
+    "category": "punct",
+    "text": "Milk: 200 mils. Whey: 1 scoop.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "punct-07",
+    "category": "punct",
+    "text": "2 eggs on toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "\"on\" is a connector; currently becomes unmatched.",
+    "status": "should"
+  },
+  {
+    "id": "punct-08",
+    "category": "punct",
+    "text": "rice 150 grams with chicken breast 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "punct-09",
+    "category": "punct",
+    "text": "Chicken breast, 100 grams,, rice, 150 grams.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Doubled commas.",
+    "status": "should"
+  },
+  {
+    "id": "long-01",
+    "category": "long",
+    "text": "Meal number one, 2 Weet-Bix, green milk 200 mils and one scoop of whey protein. Meal number two, chicken breast 125 grams, basmati rice 150 grams and 20 grams of cashews. Save.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "PLAN.md example verbatim. Needs \"whey protein\" to resolve to one whey (aliases whey AND protein are both hits).",
+    "status": "must"
+  },
+  {
+    "id": "long-02",
+    "category": "long",
+    "text": "Meal number one 2 Weet-Bix green milk 200 mils and one scoop of whey protein Meal number two chicken breast 125 grams basmati rice 150 grams and 20 grams of cashews Save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "PLAN example with all punctuation stripped.",
+    "status": "should"
+  },
+  {
+    "id": "long-03",
+    "category": "long",
+    "text": "Meal number one, 2 Weet-Bix, green milk 200 mils and one scoop of whey protein? Meal number two, chicken breast 125 grams, basmati rice 150 grams and 20 grams of cashews? Save?",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "All full stops turned to uptalk question marks.",
+    "status": "must"
+  },
+  {
+    "id": "long-04",
+    "category": "long",
+    "text": "Meal one, 3 Weet-Bix, 200 ml of green top milk, a scoop of scorpion whey. Meal two, 150 grams of chicken breast and 150 grams of basmati rice, 30 grams of cashews. Meal three, a protein bar and 2 rice cakes. Save it.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 30,
+              "unit": "g"
+            }
+          ]
+        },
+        {
+          "meal": 3,
+          "items": [
+            {
+              "foodId": "bar",
+              "qty": 1,
+              "unit": "item"
+            },
+            {
+              "foodId": "ricecake",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "long-05",
+    "category": "long",
+    "text": "Meal one. Two eggs. Two slices of toast. A cheese wedge. Meal two. Chicken breast. Basmati rice. Kumara 200 grams. Save.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "cheese",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "kumara",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "long-06",
+    "category": "long",
+    "chunks": [
+      "Meal number one, 2 Weet-Bix, green milk 200 mils",
+      "and one scoop of whey protein.",
+      "Meal number two, chicken breast 125 grams,",
+      "basmati rice 150 grams and 20 grams of cashews.",
+      "Save."
+    ],
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "PLAN example in five iOS chunks.",
+    "status": "must"
+  },
+  {
+    "id": "long-07",
+    "category": "long",
+    "text": "meal one 2 weet bix 200 mils green milk 1 scoop whey meal two 125 grams chicken breast 150 grams basmati rice 20 grams cashews save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "No punctuation, mixed amount-first and amount-after: rice and cashews amounts must not slip a position.",
+    "status": "should"
+  },
+  {
+    "id": "long-08",
+    "category": "long",
+    "text": "I had 3 Weet-Bix, 200 mils of milk, and a scoop of whey for meal one. Then for meal two I had 125 grams of chicken breast, 150 grams of rice, and 20 grams of cashews. Save.",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        },
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 125,
+              "unit": "g"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "note": "Conversational order: marker at the END of its clause (\"for meal one\" trailing). Marker-after-content is the hard bit.",
+    "status": "should"
+  },
+  {
+    "id": "long-09",
+    "category": "long",
+    "text": "Meal two, potato 200 grams, chicken breast 150 grams, 3 eggs, 2 slices of bread, a tasti bar, a cheese triangle, Save",
+    "expected": {
+      "meals": [
+        {
+          "meal": 2,
+          "items": [
+            {
+              "foodId": "potato",
+              "qty": 200,
+              "unit": "g"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "bar",
+              "qty": 1,
+              "unit": "item"
+            },
+            {
+              "foodId": "cheese",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": true
+    },
+    "status": "must"
+  },
+  {
+    "id": "adj-01",
+    "category": "adj",
+    "text": "Weet-Bix 3 chicken breast 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Bare 3 is claimed by Weet-Bix because the unit-bearing 100 grams claims chicken.",
+    "status": "should"
+  },
+  {
+    "id": "adj-02",
+    "category": "adj",
+    "text": "chicken breast 100 grams Weet-Bix 3",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            },
+            {
+              "foodId": "weetbix",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "adj-03",
+    "category": "adj",
+    "text": "2 toast 3 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            },
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "adj-04",
+    "category": "adj",
+    "text": "milk 200 mils whey 2 scoops",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 2,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "adj-05",
+    "category": "adj",
+    "text": "whey 2 scoops milk 300 mils",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 2,
+              "unit": "scoop"
+            },
+            {
+              "foodId": "milk",
+              "qty": 300,
+              "unit": "ml"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "adj-06",
+    "category": "adj",
+    "text": "milk 2 scoops whey",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "milk",
+              "qty": 200,
+              "unit": "ml"
+            },
+            {
+              "foodId": "whey",
+              "qty": 2,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Unit compatibility: scoops cannot belong to milk, so they bind forward to whey. Current parser binds to milk and warns.",
+    "status": "should"
+  },
+  {
+    "id": "adj-07",
+    "category": "adj",
+    "text": "rice 3 eggs",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Bare 3 between rice and eggs: rice (3 g) or eggs? Plural \"eggs\" suggests eggs; owner to confirm.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "adj-08",
+    "category": "adj",
+    "text": "eggs 3 rice 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "egg",
+              "qty": 3,
+              "unit": "item"
+            },
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "adj-09",
+    "category": "adj",
+    "text": "cashews 20 grams potato 200 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            },
+            {
+              "foodId": "potato",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unk-01",
+    "category": "unk",
+    "text": "banana",
+    "expected": {
+      "meals": [],
+      "unmatched": [
+        "banana"
+      ],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unk-02",
+    "category": "unk",
+    "text": "2 bananas",
+    "expected": {
+      "meals": [],
+      "unmatched": [
+        "bananas"
+      ],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unk-03",
+    "category": "unk",
+    "text": "banana 100 grams",
+    "expected": {
+      "meals": [],
+      "unmatched": [
+        "banana"
+      ],
+      "save": false
+    },
+    "note": "Amount stays with the unknown food.",
+    "status": "must"
+  },
+  {
+    "id": "unk-04",
+    "category": "unk",
+    "text": "banana 100 grams, chicken breast 150 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [
+        "banana"
+      ],
+      "save": false
+    },
+    "note": "Chicken must not steal the banana amount, and keeps its own.",
+    "status": "must"
+  },
+  {
+    "id": "unk-05",
+    "category": "unk",
+    "text": "chicken breast banana 100 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [
+        "banana"
+      ],
+      "save": false
+    },
+    "note": "Amount trails banana, so banana owns it; chicken keeps default.",
+    "status": "should"
+  },
+  {
+    "id": "unk-06",
+    "category": "unk",
+    "text": "chicken breast 100 grams banana",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 100,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [
+        "banana"
+      ],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unk-07",
+    "category": "unk",
+    "text": "100 grams of banana and 150 grams of rice",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [
+        "banana"
+      ],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unk-08",
+    "category": "unk",
+    "text": "rice 150 grams and an apple",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [
+        "apple"
+      ],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "unk-09",
+    "category": "unk",
+    "text": "chicken wings 150 grams",
+    "expected": {
+      "meals": [],
+      "unmatched": [
+        "chicken wings"
+      ],
+      "save": false
+    },
+    "note": "Unknown food containing a known alias; matching chicken here is probably wrong but is a v2 judgement.",
+    "status": "ambiguous"
+  },
+  {
+    "id": "unk-10",
+    "category": "unk",
+    "text": "weetbix 2 and a flat white",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [
+        "flat white"
+      ],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-01",
+    "category": "coll",
+    "text": "rice cake",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "ricecake",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-02",
+    "category": "coll",
+    "text": "rice cakes",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "ricecake",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-03",
+    "category": "coll",
+    "text": "rice 150 grams and 2 rice cakes",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "rice",
+              "qty": 150,
+              "unit": "g"
+            },
+            {
+              "foodId": "ricecake",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-04",
+    "category": "coll",
+    "text": "protein",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-05",
+    "category": "coll",
+    "text": "protein bar",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "bar",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-06",
+    "category": "coll",
+    "text": "a protein shake and a protein bar",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            },
+            {
+              "foodId": "bar",
+              "qty": 1,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-07",
+    "category": "coll",
+    "text": "whey protein",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "whey",
+              "qty": 1,
+              "unit": "scoop"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Both words are whey aliases; must collapse to one item, not two.",
+    "status": "must"
+  },
+  {
+    "id": "coll-08",
+    "category": "coll",
+    "text": "two protein bars",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "bar",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Plural \"protein bars\" is not an alias; needs plural stripping.",
+    "status": "should"
+  },
+  {
+    "id": "coll-09",
+    "category": "coll",
+    "text": "potato",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "potato",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-10",
+    "category": "coll",
+    "text": "sweet potato",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "kumara",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-11",
+    "category": "coll",
+    "text": "sweet potato and potato",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "kumara",
+              "qty": 200,
+              "unit": "g"
+            },
+            {
+              "foodId": "potato",
+              "qty": 200,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "coll-12",
+    "category": "coll",
+    "text": "kumara and potatoes 300 grams",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "kumara",
+              "qty": 200,
+              "unit": "g"
+            },
+            {
+              "foodId": "potato",
+              "qty": 300,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "should"
+  },
+  {
+    "id": "coll-13",
+    "category": "coll",
+    "text": "chicken breasts",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "chicken",
+              "qty": 150,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "note": "Plural.",
+    "status": "should"
+  },
+  {
+    "id": "coll-14",
+    "category": "coll",
+    "text": "2 cheese triangles",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cheese",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "def-01",
+    "category": "def",
+    "text": "weet-bix",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "weetbix",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "def-02",
+    "category": "def",
+    "text": "cashews",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "cashews",
+              "qty": 20,
+              "unit": "g"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  },
+  {
+    "id": "def-03",
+    "category": "def",
+    "text": "toast",
+    "expected": {
+      "meals": [
+        {
+          "meal": 1,
+          "items": [
+            {
+              "foodId": "toast",
+              "qty": 2,
+              "unit": "item"
+            }
+          ]
+        }
+      ],
+      "unmatched": [],
+      "save": false
+    },
+    "status": "must"
+  }
+]
