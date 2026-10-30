@@ -50,7 +50,7 @@ function quantityAt(tokens, start) {
   return { start, end, value, spoken };
 }
 
-function parseMeal(text, meal, foods, result) {
+function parseMeal(text, meal, foods, savedMeals, result) {
   const tokens = Array.from(text.matchAll(/\S+/g), match => ({
     word: match[0], start: match.index, end: match.index + match[0].length,
   }));
@@ -64,6 +64,17 @@ function parseMeal(text, meal, foods, result) {
       for (let end = start + 1; end <= Math.min(start + 4, tokens.length); end += 1) {
         name += tokens[end - 1].word;
         if (names.has(name)) candidates.push({ start, end, food, order, length: name.length });
+      }
+    }
+  });
+  savedMeals.forEach((savedMeal, index) => {
+    const names = new Set([savedMeal.name, ...(savedMeal.aliases ?? [])].map(squash));
+    const order = foods.length + index;
+    for (let start = 0; start < tokens.length; start += 1) {
+      let name = '';
+      for (let end = start + 1; end <= Math.min(start + 4, tokens.length); end += 1) {
+        name += tokens[end - 1].word;
+        if (names.has(name)) candidates.push({ start, end, savedMeal, order, length: name.length });
       }
     }
   });
@@ -96,7 +107,9 @@ function parseMeal(text, meal, foods, result) {
     const before = mentions.filter(mention => mention.end <= quantity.start).at(-1);
     const after = mentions.find(mention => mention.start >= quantity.end);
     let target;
-    if (before && !before.quantity && clear(before.end, quantity.start)) target = before;
+    // A unit quantity after a saved meal belongs to a following food, not the saved meal.
+    const unitForNextFood = before?.savedMeal && quantity.spoken && after?.food;
+    if (before && !before.quantity && !unitForNextFood && clear(before.end, quantity.start)) target = before;
     else if (after && !after.quantity && clear(quantity.end, after.start)) target = after;
     if (target) {
       target.quantity = quantity;
@@ -104,10 +117,30 @@ function parseMeal(text, meal, foods, result) {
     }
   }
 
-  const explicitIds = new Set(mentions.filter(mention => mention.quantity).map(mention => mention.food.id));
+  const explicitIds = new Set(mentions.filter(mention => mention.food && mention.quantity).map(mention => mention.food.id));
   const items = [];
   for (const mention of mentions) {
-    const { food, quantity } = mention;
+    const { food, quantity, savedMeal } = mention;
+    if (savedMeal) {
+      let multiplier = 1;
+      if (quantity?.spoken) {
+        result.warnings.push({ meal, foodId: null,
+          message: `Spoken unit ${raw(quantity.start, quantity.end)} ignored for saved meal ${savedMeal.name}.` });
+      } else if (quantity) multiplier = quantity.value;
+      const span = raw(Math.min(mention.start, quantity?.start ?? mention.start),
+        Math.max(mention.end, quantity?.end ?? mention.end));
+      for (const item of savedMeal.items ?? []) {
+        const itemFood = foods.find(candidate => candidate.id === item.foodId);
+        if (!itemFood) {
+          result.warnings.push({ meal, foodId: null,
+            message: `Saved meal ${savedMeal.name} skipped ${item.foodId}: food not found.` });
+          continue;
+        }
+        items.push({ foodId: item.foodId, qty: item.qty * multiplier, unit: itemFood.unit,
+          raw: span, savedMealId: savedMeal.id });
+      }
+      continue;
+    }
     if (!quantity && explicitIds.has(food.id)) continue;
     let qty = food.defaultQty;
     if (quantity) {
@@ -138,7 +171,7 @@ function parseMeal(text, meal, foods, result) {
 }
 
 /** Parse dictated meals without changing the supplied food catalogue. */
-export function parseDictation(text, foods, { defaultMeal = 1 } = {}) {
+export function parseDictation(text, foods, { defaultMeal = 1, savedMeals = [] } = {}) {
   let normalised = normalise(text);
   const saveSuffix = /(?:^| )(?:save(?: it)?|saved)$/;
   const save = saveSuffix.test(normalised);
@@ -159,7 +192,7 @@ export function parseDictation(text, foods, { defaultMeal = 1 } = {}) {
   }
   append(meal, normalised.slice(start).trim());
   for (const [number, chunks] of segments) {
-    parseMeal(chunks.filter(Boolean).join(' '), number, foods, result);
+    parseMeal(chunks.filter(Boolean).join(' '), number, foods, savedMeals, result);
   }
   result.meals.sort((a, b) => a.meal - b.meal);
   return result;

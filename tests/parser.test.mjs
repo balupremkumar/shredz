@@ -177,3 +177,46 @@ test('trailing saved and save it commands accept punctuation and case', () => {
     assert.equal(parseDictation(text, foods).save, false, text);
   }
 });
+
+const savedMeals = [{ id: 'usual', name: 'Usual breakfast', aliases: ['usual brekkie'], items: [
+  { foodId: 'weetbix', qty: 2 }, { foodId: 'milk', qty: 200 }, { foodId: 'whey', qty: 1 },
+] }];
+const usual = [['weetbix', 2, 'item'], ['milk', 200, 'ml'], ['whey', 1, 'scoop']];
+
+test('saved meals expand in place', () => {
+  const result = parseDictation('Meal one, usual breakfast. Save.', foods, { savedMeals });
+  assert.deepEqual(compact(result), [[1, usual]]);
+  assert.ok(result.meals[0].items.every(item => item.savedMealId === 'usual'));
+  assert.equal(result.save, true);
+  assert.deepEqual(result.unmatched, []);
+  assert.deepEqual(result.warnings, []);
+  const mixed = parseDictation('Meal 2, usual brekkie and 20 grams of cashews', foods, { savedMeals });
+  assert.deepEqual(compact(mixed), [[2, [...usual, ['cashews', 20, 'g']]]]);
+  assert.equal('savedMealId' in mixed.meals[0].items[3], false);
+});
+
+test('saved meal multipliers and unit warning', () => {
+  const doubled = parseDictation('2 usual breakfast', foods, { savedMeals });
+  assert.deepEqual(compact(doubled), [[1, [['weetbix', 4, 'item'], ['milk', 400, 'ml'], ['whey', 2, 'scoop']]]]);
+  const grams = parseDictation('200 grams of usual breakfast', foods, { savedMeals });
+  assert.deepEqual(compact(grams), [[1, usual]]);
+  assert.equal(grams.warnings.length, 1);
+  assert.equal(grams.warnings[0].foodId, null);
+  assert.equal(grams.warnings[0].meal, 1);
+});
+
+test('longest match across foods and saved meals; duplicates never merge saved items', () => {
+  const pool = [...foods, Object.freeze({ ...foods[0], id: 'oats', name: 'Breakfast oats', aliases: [] })];
+  const both = parseDictation('breakfast oats and usual breakfast', pool, { savedMeals });
+  assert.deepEqual(compact(both), [[1, [['oats', 2, 'item'], ...usual]]]);
+  const twice = parseDictation('usual breakfast and usual breakfast', foods, { savedMeals });
+  assert.equal(twice.meals[0].items.length, 6);
+});
+
+test('saved meal item with a missing food is skipped with a warning', () => {
+  const broken = [{ id: 'b', name: 'Broken', aliases: [], items: [{ foodId: 'gone', qty: 1 }, { foodId: 'milk', qty: 100 }] }];
+  const result = parseDictation('broken', foods, { savedMeals: broken });
+  assert.deepEqual(compact(result), [[1, [['milk', 100, 'ml']]]]);
+  assert.equal(result.warnings.length, 1);
+  assert.match(result.warnings[0].message, /Broken/);
+});
