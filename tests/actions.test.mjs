@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createApp } from '../src/actions.js';
 import { createStore, createMemoryBackend, DEFAULT_SETTINGS } from '../src/store.js';
 import { dayTotals, remaining } from '../src/diary.js';
+import * as insights from '../src/insights.js';
 
 const date = '2026-10-31';
 const dictation = 'Meal number one, 2 Weet-Bix, green milk 200 mils and one scoop of whey protein. Meal number two, chicken breast 125 grams, basmati rice 150 grams and 20 grams of cashews. Save.';
@@ -132,7 +133,7 @@ test('backup replace restores data, invalid files preserve it and merge keeps en
   const fresh = setup().app;
   await fresh.init();
   assert.deepEqual(await fresh.actions.importBackup(exported.text, 'replace'),
-    { ok: true, summary: { foods: 6, entries: 6, weights: 1, days: 1 } });
+    { ok: true, summary: { foods: 6, entries: 6, weights: 1, savedMeals: 0, days: 1 } });
   assert.deepEqual(fresh.getState().data, app.getState().data);
   const before = fresh.getState();
   assert.match((await fresh.actions.importBackup('{bad', 'replace')).error, /valid JSON/);
@@ -161,7 +162,7 @@ test('navigation, notifications, normalisation, edits, goals and snapshot isolat
   const unsubscribe = app.subscribe(() => { calls += 1; });
   await app.init();
   assert.equal(calls, 1);
-  assert.deepEqual(app.getState(), { data: { foods: [], entries: [], weights: [], settings: DEFAULT_SETTINGS },
+  assert.deepEqual(app.getState(), { data: { foods: [], entries: [], weights: [], savedMeals: [], settings: DEFAULT_SETTINGS },
     date, tab: 'diary', sheet: null, ready: true });
   app.actions.prevDay();
   assert.equal(app.getState().date, '2026-10-30');
@@ -204,6 +205,7 @@ test('navigation, notifications, normalisation, edits, goals and snapshot isolat
   assert.equal(app.select.day().nextMeal, 1);
   assert.equal((await app.actions.saveGoals({ kcal: 1, protein: 2, carbs: 3, fat: 4 })).ok, true);
   assert.deepEqual(app.select.day().goals, { kcal: 1, protein: 2, carbs: 3, fat: 4 });
+  assert.deepEqual(app.select.settings(), { ...DEFAULT_SETTINGS, goals: { kcal: 1, protein: 2, carbs: 3, fat: 4 } });
   app.select.day().goals.kcal = 500;
   assert.equal(app.select.day().goals.kcal, 1);
   assert.equal(calls, count);
@@ -245,4 +247,100 @@ test('backup file name uses local today while exportedAt keeps the UTC timestamp
   assert.equal(result.ok, true);
   assert.equal(result.fileName, 'macro-diary-2026-10-31.json');
   assert.equal(JSON.parse(result.text).exportedAt, timestamp);
+});
+
+test('saved meals persist, add to another day and match dictated names', async () => {
+  const { app, backend } = await seeded();
+  await app.actions.addParsed(date, app.select.preview(dictation));
+  assert.equal((await app.actions.saveMealAsSaved({ date, meal: 9, name: 'x' })).ok, false);
+  const saved = await app.actions.saveMealAsSaved({ date, meal: 1, name: '  Usual breakfast ' });
+  assert.equal(saved.ok, true);
+  assert.deepEqual(app.select.savedMeals().map(meal => [meal.name, meal.items.length]), [['Usual breakfast', 3]]);
+  const added = await app.actions.addSavedMeal('2026-11-01', 2, saved.id);
+  assert.equal(added.added, 3);
+  assert.equal(added.kcal, app.select.day(date).view.meals[0].totals.kcal);
+  assert.equal((await app.actions.addSavedMeal(date, 1, 'missing')).ok, false);
+  await app.actions.saveSavedMeal({ id: saved.id, name: 'Usual breakfast', aliases: [' Brekkie ', 'brekkie'],
+    items: app.select.savedMeals()[0].items });
+  const preview = app.select.preview('Meal 1, usual breakfast');
+  assert.equal(preview.meals[0].items.length, 3);
+  assert.equal((await app.actions.addParsed('2026-11-03', preview)).added, 3);
+  const fresh = setup(backend).app;
+  await fresh.init();
+  assert.deepEqual(fresh.select.savedMeals()[0].aliases, ['brekkie']);
+  assert.equal((await fresh.actions.deleteSavedMeal(saved.id)).ok, true);
+  const again = setup(backend).app;
+  await again.init();
+  assert.deepEqual(again.select.savedMeals(), []);
+  assert.equal((await app.actions.saveSavedMeal({ name: 'Empty', items: [] })).ok, false);
+});
+
+test('addAlias learns words and refuses clashes; stepEntry steps by unit', async () => {
+  const { app } = await seeded();
+  await app.actions.saveSavedMeal({ id: 'sm', name: 'Usual', items: [{ foodId: 'milk', qty: 100 }] });
+  const result = await app.actions.addAlias('weetbix', '  Wheat   BIX ');
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.food.aliases, ['wheat bix']);
+  assert.equal(app.select.preview('2 wheat bix').meals[0].items[0].foodId, 'weetbix');
+  assert.match((await app.actions.addAlias('rice', 'wheat bix')).error, /Already used for Weet-Bix/);
+  assert.match((await app.actions.addAlias('rice', 'green milk')).error, /Already used for Green milk/);
+  assert.match((await app.actions.addAlias('rice', 'usual')).error, /Already used for Usual/);
+  assert.equal((await app.actions.addAlias('rice', '   ')).ok, false);
+  assert.equal((await app.actions.addAlias('nope', 'word')).ok, false);
+  await app.actions.addItems(date, 1, [{ foodId: 'weetbix', qty: 2 }, { foodId: 'rice', qty: 100 }]);
+  const [item, grams] = app.getState().data.entries.map(entry => entry.id);
+  await app.actions.stepEntry(item, 1);
+  await app.actions.stepEntry(grams, 1);
+  assert.deepEqual(app.getState().data.entries.map(entry => entry.qty), [3, 125]);
+  await app.actions.stepEntry(item, -1);
+  await app.actions.stepEntry(item, -1);
+  await app.actions.stepEntry(item, -1);
+  assert.equal(app.getState().data.entries[0].qty, 1);
+  assert.equal((await app.actions.stepEntry('missing', 1)).ok, false);
+});
+
+test('goal modes, merged goals, large text, csv and insight selectors', async () => {
+  const { app, backend } = await seeded();
+  assert.equal((await app.actions.saveGoalSettings({ goalMode: 'percent', kcal: 2400,
+    split: { protein: 30, carbs: 40, fat: 30 } })).ok, true);
+  assert.deepEqual(app.select.settings().goals, { kcal: 2400, protein: 180, carbs: 240, fat: 80 });
+  assert.equal(app.select.settings().goalMode, 'percent');
+  const before = app.getState();
+  const refused = await app.actions.saveGoalSettings({ goalMode: 'percent', kcal: 2400,
+    split: { protein: 30, carbs: 40, fat: 31 } });
+  assert.deepEqual(refused, { ok: false, error: 'Percentages must add up to 100' });
+  assert.equal((await app.actions.saveGoalSettings({ goalMode: 'other' })).ok, false);
+  assert.deepEqual(app.getState(), before);
+  await app.actions.setLargeText(true);
+  await app.actions.saveGoals({ kcal: 2000, protein: 150, carbs: 200, fat: 60 });
+  assert.deepEqual(app.select.settings(), { goals: { kcal: 2000, protein: 150, carbs: 200, fat: 60 },
+    goalMode: 'percent', split: { protein: 30, carbs: 40, fat: 30 }, largeText: true });
+  assert.equal((await app.actions.saveGoalSettings({ goalMode: 'grams', protein: 180, carbs: 240, fat: 80 })).ok, true);
+  assert.deepEqual(app.select.settings(), { goals: { kcal: 2400, protein: 180, carbs: 240, fat: 80 },
+    goalMode: 'grams', split: { protein: 30, carbs: 40, fat: 30 }, largeText: true });
+  assert.equal((await app.actions.saveGoalSettings({ goalMode: 'grams', protein: -1, carbs: 1, fat: 1 })).ok, false);
+  const fresh = setup(backend).app;
+  await fresh.init();
+  assert.deepEqual(fresh.select.settings(), app.select.settings());
+
+  await app.actions.addParsed(date, app.select.preview(dictation));
+  await app.actions.logWeight('2026-10-30', 84);
+  const diary = app.actions.exportCsv('diary');
+  assert.equal(diary.fileName, 'macro-diary-diary-2026-10-31.csv');
+  assert.match(diary.text, /^date,meal,food,qty,unit,kcal,protein,carbs,fat\r\n/);
+  const weights = app.actions.exportCsv('weights');
+  assert.equal(weights.fileName, 'macro-diary-weights-2026-10-31.csv');
+  assert.equal(weights.text, 'date,kg\r\n2026-10-30,84\r\n');
+  assert.equal(app.actions.exportCsv('other').ok, false);
+  const { entries, weights: all } = app.getState().data;
+  const foodsMap = Object.fromEntries(fixtures.map(food => [food.id, food]));
+  assert.deepEqual(app.select.report(7), insights.report(entries, all, foodsMap, date, 7));
+  assert.deepEqual(app.select.weightTrend(), [{ date: '2026-10-30', kg: 84 }]);
+  assert.deepEqual(app.select.weightTrend(1), []);
+  assert.equal(app.select.needsWeighIn(), true);
+  await app.actions.logWeight(date, 83);
+  assert.equal(app.select.needsWeighIn(), false);
+  assert.deepEqual(app.select.weightTrend(1), [{ date, kg: 83.5 }]);
+  assert.deepEqual(app.select.recentFoods().map(food => food.id).slice(0, 6),
+    insights.recentFoods(entries, fixtures, date).map(food => food.id));
 });
