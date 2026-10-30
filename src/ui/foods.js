@@ -50,9 +50,10 @@ function foodEdit(root, app, props = {}) {
 
   const inputs = {};
   function field(key, label, value, attrs = {}) {
+    // Numbers select on focus so typing replaces the 0 instead of appending to it.
     const input = h('input', { class: 'input', attrs: {
       id: `food-edit-${key}`, type: 'text', value, enterkeyhint: 'done', ...attrs,
-    } });
+    }, on: attrs.inputmode ? { focus: event => event.target.select() } : {} });
     inputs[key] = input;
     return h('div', { class: 'field' },
       h('label', { class: 'field__label', text: label, attrs: { for: `food-edit-${key}` } }), input,

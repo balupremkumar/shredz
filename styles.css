@@ -12,7 +12,7 @@
  * .macros: vertical group of macro meters.
  * .macro: macro label/value row and its meter.
  * .macro__label: muted macro name.
- * .macro__value: right-aligned tabular current/goal value cell.
+ * .macro__value: right-aligned current/goal value cell.
  * .macro__bar: three-pixel meter track.
  * .macro__fill: meter fill; set width as a clamped percentage in markup.
  * .macro--over: over-goal value and meter state.
@@ -29,7 +29,7 @@
  * .row__body: flexible, wrapping item description column.
  * .row__name: primary item name.
  * .row__qty: secondary quantity below the name.
- * .row__kcal: right-aligned tabular kcal or weight figure column.
+ * .row__kcal: right-aligned kcal or weight figure column.
  * .row--problem: unresolved item state in red.
  * .link-btn: text action with a 44 px target.
  * .pill: 48 px rounded action button.
@@ -60,7 +60,7 @@
  * .muted: secondary text colour.
  * .faint: metadata only, minimum 12 px.
  * .ice: key data colour, only Remaining and today's weight.
- * .num: right-aligned tabular figure cell, never inline macro totals.
+ * .num: right-aligned figure cell (proportional figures: tabular ones render wide in this font).
  * .visually-hidden: accessible text hidden from visual layout.
  * Sheets are visible by default; callers manage hidden/inert and focus.
  * Keep fixed bars as siblings of main content, outside transformed parents.
@@ -177,7 +177,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .macros { display: grid; }
 .macro { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: var(--space-1) 0; line-height: 1.2; }
 .macro__label { color: var(--muted); }
-.macro__value { text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+.macro__value { text-align: right; font-weight: 500; font-variant-numeric: proportional-nums; }
 .macro__bar { grid-column: 1 / -1; height: 3px; margin-top: 5px; background: var(--surface-2); overflow: hidden; }
 .macro__fill { display: block; width: 0; max-width: 100%; height: 100%; background: var(--azure); }
 .macro--over .macro__fill { background: var(--red); }
@@ -197,9 +197,11 @@ button:disabled { opacity: 0.5; cursor: default; }
   background: var(--surface);
   text-align: left;
 }
-.weigh-in > label { color: var(--muted); flex: 1; }
-.weigh-in__input {
-  width: 72px;
+.weigh-in > label { color: var(--muted); flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.weigh-in > span, .weigh-in .pill { flex: none; white-space: nowrap; }
+.weigh-in .weigh-in__input {
+  flex: 0 0 84px;
+  width: 84px;
   min-width: 0;
   min-height: 44px;
   padding: 0 var(--space-1);
@@ -225,7 +227,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .row__body { flex: 1; min-width: 0; }
 .row__name { font-size: var(--text-body); line-height: 1.2; }
 .row__qty { display: block; font-size: var(--text-secondary); color: var(--muted); line-height: 1.2; }
-.row__kcal { flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+.row__kcal { flex: none; text-align: right; font-variant-numeric: proportional-nums; }
 .row--problem { color: var(--red); }
 .link-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 14px 0 0; color: var(--muted); font-weight: 500; text-decoration: none; }
 .pill { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 48px; min-width: 44px; max-width: 100%; padding: var(--space-2) 20px; border: 1px solid transparent; border-radius: var(--r-pill); font-size: var(--text-body); font-weight: 500; line-height: 1.2; text-align: center; text-decoration: none; }
@@ -299,7 +301,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .live-line { display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px solid var(--line); }
 .live-line > strong { flex: 0 0 56px; }
 .live-line > span { flex: 1; color: var(--muted); }
-.live-line > :last-child { margin-left: auto; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+.live-line > :last-child { margin-left: auto; text-align: right; font-weight: 500; font-variant-numeric: proportional-nums; }
 .problem-line { padding-top: 10px; color: var(--red); font-weight: 500; }
 .empty { padding: var(--space-4) 0; color: var(--muted); font-size: var(--text-secondary); }
 .toast { position: fixed; z-index: 30; left: calc(var(--space-4) + env(safe-area-inset-left, 0px)); right: calc(var(--space-4) + env(safe-area-inset-right, 0px)); bottom: calc(var(--tab-height) + var(--dock-height) + env(safe-area-inset-bottom, 0px) + var(--space-2)); padding: var(--space-3) 14px; border: 1px solid var(--line-strong); border-radius: var(--r-section); background: var(--surface-2); font-size: var(--text-secondary); }
@@ -310,7 +312,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .muted { color: var(--muted); }
 .faint { color: var(--faint); font-size: var(--text-meta); }
 .ice { color: var(--ice); }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
+.num { text-align: right; font-variant-numeric: proportional-nums; }
 .summary__num.num { text-align: center; font-variant-numeric: proportional-nums; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 
