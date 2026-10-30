@@ -30,6 +30,13 @@
  * .row__name: primary item name.
  * .row__qty: secondary quantity below the name.
  * .row__kcal: right-aligned kcal or weight figure column.
+ * .row__open: tappable name area inside a diary item row; opens the edit sheet.
+ * .stepper: compact minus, kcal and plus group at the right of a diary item row.
+ * .stepper__btn: 44 px minus or plus button.
+ * .row-swipe: diary item wrapper; swipe left (data-state open) to reveal delete.
+ * .row-swipe__delete: red Delete action behind a swiped item row.
+ * .section__foot--bare: meal-less action row under the meals, no divider or section frame.
+ * [data-text="large"] on html: scales every font size by about 1.15.
  * .row--problem: unresolved item state in red.
  * .link-btn: text action with a 44 px target.
  * .pill: 48 px rounded action button.
@@ -98,11 +105,12 @@
   --r-section: 8px;
   --r-pill: 999px;
   --font: "Schibsted Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --text-body: 16px;
-  --text-secondary: 13px;
-  --text-meta: 12px;
-  --text-heading: 17px;
-  --text-hero: 34px;
+  --font-scale: 1;
+  --text-body: calc(16px * var(--font-scale));
+  --text-secondary: calc(13px * var(--font-scale));
+  --text-meta: calc(12px * var(--font-scale));
+  --text-heading: calc(17px * var(--font-scale));
+  --text-hero: calc(34px * var(--font-scale));
   --tab-height: 50px;
   --dock-height: 64px;
 }
@@ -229,6 +237,16 @@ button:disabled { opacity: 0.5; cursor: default; }
 .row__qty { display: block; font-size: var(--text-secondary); color: var(--muted); line-height: 1.2; }
 .row__kcal { flex: none; text-align: right; font-variant-numeric: proportional-nums; }
 .row--problem { color: var(--red); }
+.row-swipe { position: relative; overflow: hidden; border-top: 1px solid var(--line); background: var(--red); }
+.row-swipe > .row { position: relative; border-top: 0; background: var(--surface); touch-action: pan-y; transition: transform 150ms ease-out; }
+.row-swipe[data-state="drag"] > .row { transition: none; }
+.row-swipe__delete { position: absolute; top: 0; right: 0; bottom: 0; width: 88px; background: var(--red); color: var(--ink-on-accent); font-weight: 500; visibility: hidden; }
+.row-swipe[data-state="drag"] .row-swipe__delete, .row-swipe[data-state="open"] .row-swipe__delete { visibility: visible; }
+.row__open { display: flex; flex: 1; align-items: center; min-width: 0; min-height: 46px; padding: 0; text-align: left; }
+.stepper { display: flex; flex: none; align-items: center; }
+.stepper__btn { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0; color: var(--text); font-size: calc(22px * var(--font-scale)); line-height: 1; }
+.stepper .row__kcal { min-width: 44px; padding: 0 2px; }
+.section__foot--bare { margin-top: 10px; border-top: 0; }
 .link-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 14px 0 0; color: var(--muted); font-weight: 500; text-decoration: none; }
 .pill { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 48px; min-width: 44px; max-width: 100%; padding: var(--space-2) 20px; border: 1px solid transparent; border-radius: var(--r-pill); font-size: var(--text-body); font-weight: 500; line-height: 1.2; text-align: center; text-decoration: none; }
 .pill--primary { background: var(--azure); color: var(--ink-on-accent); }
@@ -319,6 +337,11 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+[data-text="large"] { --font-scale: 1.15; }
+[data-text="large"] .weigh-in .weigh-in__input, [data-text="large"] .input, [data-text="large"] .textarea, [data-text="large"] .select { font-size: calc(16px * var(--font-scale)); }
+[data-text="large"] .summary__op { font-size: calc(20px * var(--font-scale)); }
+[data-text="large"] .weigh-in__meta { font-size: calc(14px * var(--font-scale)); }
 
 /* Weight tab entry: input grows, unit and Save never wrap. */
 .row > .weigh-in__input { flex: 1 1 auto; width: auto; }

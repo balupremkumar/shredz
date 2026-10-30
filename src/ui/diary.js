@@ -105,16 +105,14 @@ export function render(root, app) {
     const section = h('section', { class: 'section' },
       mealHead(meal.meal, meal.totals.kcal),
       h('p', { class: 'section__sub', text: `P ${formatMacro(meal.totals.protein)} \u00b7 C ${formatMacro(meal.totals.carbs)} \u00b7 F ${formatMacro(meal.totals.fat)} g` }));
-    for (const entry of meal.entries) section.appendChild(h('button', { class: 'row',
-      attrs: { type: 'button' }, on: { click: () => app.actions.openSheet('edit-entry', { id: entry.id }) } },
-    h('span', { class: 'row__body' },
-      h('span', { class: 'row__name', text: entry.food?.name ?? 'Unknown food' }),
-      h('span', { class: 'row__qty', text: entry.food ? formatQty(entry.qty, entry.food.unit) : String(entry.qty) })),
-    h('span', { class: 'row__kcal', text: entry.nutrition ? formatKcal(entry.nutrition.kcal) : '?' })));
+    for (const entry of meal.entries) section.appendChild(itemRow(app, entry));
     section.appendChild(h('div', { class: 'section__foot' }, addButton(app, meal.meal),
-      button('Copy...', 'link-btn', () => app.actions.openSheet('copy-meal', { meal: meal.meal }))));
+      button('Copy...', 'link-btn', () => app.actions.openSheet('copy-meal', { meal: meal.meal })),
+      button('Save meal', 'link-btn', () => app.actions.openSheet('save-meal', { meal: meal.meal }))));
     root.appendChild(section);
   }
+  if (day.view.meals.length) root.appendChild(h('div', { class: 'section__foot section__foot--bare' },
+    button('Copy this day to...', 'link-btn', () => app.actions.openSheet('copy-day'))));
   const next = h('section', { class: 'section' }, mealHead(day.nextMeal));
   const foot = h('div', { class: 'section__foot' }, addButton(app, day.nextMeal));
   const previous = day.lastLoggedDate && app.select.day(day.lastLoggedDate).view.meals.find(meal => meal.meal === day.nextMeal);
@@ -126,6 +124,92 @@ export function render(root, app) {
   }
   next.appendChild(foot);
   root.appendChild(next);
+}
+
+const DELETE_WIDTH = 88;
+const OPEN_AT = 72;
+let openSwipe = null;
+
+function closeSwipe() {
+  if (!openSwipe) return;
+  const { wrap, front } = openSwipe;
+  openSwipe = null;
+  wrap.dataset.state = 'closed';
+  front.style.transform = '';
+}
+
+// One listener for the page: a touch outside the open row closes it.
+if (typeof document !== 'undefined') document.addEventListener('pointerdown', event => {
+  if (openSwipe && !openSwipe.wrap.contains(event.target)) closeSwipe();
+}, true);
+
+function itemRow(app, entry) {
+  const name = entry.food?.name ?? 'Unknown food';
+  const step = direction => app.actions.stepEntry(entry.id, direction).then(result => {
+    if (!result.ok) app.toast(result.error);
+  });
+  const stepButton = (label, sign, direction) => h('button', { class: 'stepper__btn',
+    text: sign, attrs: { type: 'button', 'aria-label': `${label} ${name}` },
+    on: { click: () => step(direction) } });
+  const front = h('div', { class: 'row' },
+    h('button', { class: 'row__open', attrs: { type: 'button' },
+      on: { click: () => app.actions.openSheet('edit-entry', { id: entry.id }) } },
+    h('span', { class: 'row__body' },
+      h('span', { class: 'row__name', text: name }),
+      h('span', { class: 'row__qty', text: entry.food ? formatQty(entry.qty, entry.food.unit) : String(entry.qty) }))),
+    h('div', { class: 'stepper' }, stepButton('Less', '−', -1),
+      h('span', { class: 'row__kcal', text: entry.nutrition ? formatKcal(entry.nutrition.kcal) : '?' }),
+      stepButton('More', '+', 1)));
+  const remove = h('button', { class: 'row-swipe__delete', text: 'Delete',
+    attrs: { type: 'button', 'aria-label': `Delete ${name}` },
+    on: { click: () => app.actions.deleteEntry(entry.id).then(result => {
+      if (!result.ok) app.toast(result.error);
+    }) } });
+  const wrap = h('div', { class: 'row-swipe', dataset: { state: 'closed' } }, remove, front);
+  let start = null;
+  let dragged = false;
+  let offset = 0;
+  front.addEventListener('pointerdown', event => {
+    if (event.pointerType !== 'touch') return;
+    start = { x: event.clientX, y: event.clientY, base: openSwipe?.wrap === wrap ? -DELETE_WIDTH : 0 };
+    dragged = false;
+  });
+  front.addEventListener('pointermove', event => {
+    if (!start) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (!dragged) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+      dragged = true;
+      if (openSwipe && openSwipe.wrap !== wrap) closeSwipe();
+      wrap.dataset.state = 'drag';
+      front.setPointerCapture(event.pointerId);
+    }
+    offset = Math.min(0, Math.max(-DELETE_WIDTH, start.base + dx));
+    front.style.transform = `translateX(${offset}px)`;
+  });
+  const finish = () => {
+    if (!start) return;
+    start = null;
+    if (!dragged) return;
+    if (offset < -OPEN_AT) {
+      wrap.dataset.state = 'open';
+      front.style.transform = `translateX(${-DELETE_WIDTH}px)`;
+      openSwipe = { wrap, front };
+    } else {
+      wrap.dataset.state = 'closed';
+      front.style.transform = '';
+      if (openSwipe?.wrap === wrap) openSwipe = null;
+    }
+  };
+  front.addEventListener('pointerup', finish);
+  front.addEventListener('pointercancel', finish);
+  // A drag or a tap on an open row must not open the edit sheet.
+  front.addEventListener('click', event => {
+    if (dragged) { dragged = false; event.preventDefault(); event.stopPropagation(); return; }
+    if (openSwipe?.wrap === wrap) { event.preventDefault(); event.stopPropagation(); closeSwipe(); }
+  }, true);
+  return wrap;
 }
 
 function mealHead(meal, kcal) {
@@ -183,7 +267,8 @@ function quantity(body, food, initial, label, app, work, success) {
 function addFood(root, app, { meal }) {
   const date = app.state.date;
   const body = sheetBody(root, app, `Add to Meal ${meal}`);
-  const foods = app.select.foods();
+  const foods = app.select.recentFoods();
+  const saved = app.select.savedMeals();
   if (!foods.length) {
     body.appendChild(h('p', { class: 'empty', text: 'No foods yet.' }));
     body.appendChild(button('Add a food', 'pill pill--primary', () => {
@@ -201,6 +286,25 @@ function addFood(root, app, { meal }) {
   function filter() {
     clear(list);
     const query = search.value.trim().toLowerCase();
+    const foodsById = new Map(foods.map(food => [food.id, food]));
+    const savedMatches = saved.filter(pick => [pick.name, ...(pick.aliases || [])]
+      .some(name => name.toLowerCase().includes(query)));
+    if (savedMatches.length) list.appendChild(h('h3', { class: 'field__label', text: 'Saved meals' }));
+    for (const pick of savedMatches) {
+      const kcal = pick.items.reduce((sum, item) => {
+        const food = foodsById.get(item.foodId);
+        return food ? sum + food.kcal * item.qty / food.baseQty : sum;
+      }, 0);
+      const control = h('button', { class: 'row', attrs: { type: 'button' },
+        on: { click: () => submit(control, () => app.actions.addSavedMeal(date, meal, pick.id), app, () => {
+          app.actions.closeSheet();
+          app.toast(`Added ${pick.name}`);
+        }) } }, h('span', { class: 'row__body' },
+        h('span', { class: 'row__name', text: pick.name }),
+        h('span', { class: 'row__qty', text: `${pick.items.length} items, ${formatKcal(kcal)} kcal` })));
+      list.appendChild(control);
+    }
+    if (savedMatches.length) list.appendChild(h('h3', { class: 'field__label', text: 'Foods' }));
     const matches = foods.filter(food => [food.name, ...(food.aliases || [])]
       .some(name => name.toLowerCase().includes(query)));
     for (const food of matches) list.appendChild(h('button', { class: 'row', attrs: { type: 'button' },
@@ -249,4 +353,64 @@ function copyMeal(root, app, { meal }) {
   if (!dates.length) body.appendChild(h('p', { class: 'empty', text: `No earlier Meal ${meal} to copy.` }));
 }
 
-export const sheets = { 'add-food': addFood, 'edit-entry': editEntry, 'copy-meal': copyMeal };
+function saveMeal(root, app, { meal }) {
+  const date = app.state.date;
+  const body = sheetBody(root, app, `Save Meal ${meal}`);
+  const input = h('input', { class: 'input', attrs: { type: 'text', enterkeyhint: 'done',
+    'aria-label': 'Saved meal name', value: `Meal ${meal}` }, on: { focus: event => event.target.select() } });
+  const errorLine = problem();
+  const save = button('Save', 'pill pill--primary pill--block', () => saveNow());
+  function saveNow() {
+    const name = input.value.trim();
+    if (!name) {
+      errorLine.textContent = 'Enter a name.';
+      errorLine.hidden = false;
+      return;
+    }
+    submit(save, () => app.actions.saveMealAsSaved({ date, meal, name }), app, () => {
+      app.actions.closeSheet();
+      app.toast(`Saved ${name}`);
+    }, errorLine);
+  }
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); saveNow(); }
+  });
+  body.appendChild(h('label', { class: 'field' }, h('span', { class: 'field__label', text: 'Name' }), input));
+  body.appendChild(errorLine);
+  body.appendChild(save);
+  input.focus();
+  input.select();
+}
+
+function copyDay(root, app) {
+  const fromDate = app.state.date;
+  const body = sheetBody(root, app, 'Copy this day to');
+  const input = h('input', { class: 'input', attrs: { type: 'date', 'aria-label': 'Copy to date',
+    value: localDate() } });
+  const errorLine = problem();
+  const save = button('Copy', 'pill pill--primary pill--block', () => copyNow());
+  function copyNow() {
+    const toDate = input.value;
+    if (!toDate) {
+      errorLine.textContent = 'Pick a day.';
+      errorLine.hidden = false;
+      return;
+    }
+    if (toDate === fromDate) {
+      errorLine.textContent = 'Pick a different day';
+      errorLine.hidden = false;
+      return;
+    }
+    submit(save, () => app.actions.copyDay({ fromDate, toDate }), app, async result => {
+      app.actions.closeSheet();
+      await app.actions.setDate(toDate);
+      app.toast(`Copied ${result.added} items to ${dayLabel(toDate, localDate())}`);
+    }, errorLine);
+  }
+  body.appendChild(h('label', { class: 'field' }, h('span', { class: 'field__label', text: 'Day' }), input));
+  body.appendChild(errorLine);
+  body.appendChild(save);
+}
+
+export const sheets = { 'add-food': addFood, 'edit-entry': editEntry, 'copy-meal': copyMeal,
+  'save-meal': saveMeal, 'copy-day': copyDay };
