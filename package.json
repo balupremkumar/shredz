@@ -6,6 +6,6 @@
   "description": "Local-only food and weight diary for iPhone (PWA).",
   "license": "MIT",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.mjs"
   }
 }
