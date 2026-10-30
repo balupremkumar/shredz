@@ -16,7 +16,7 @@ function isCalendarDate(value) {
 }
 
 export function backupFileName(date) {
-  return `macro-diary-${date}.json`;
+  return `shredz-backup-${date}.json`;
 }
 
 export function exportBackup({ foods, entries, weights, settings, savedMeals = [] }, exportedAt) {

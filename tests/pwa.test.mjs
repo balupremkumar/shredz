@@ -13,7 +13,7 @@ const files = JSON.parse(worker.match(/const FILES = (\[[\s\S]*?\]);/)[1]
 test('manifest describes a relative, standalone portrait app with its icons', async () => {
   const manifest = JSON.parse(await readFile(new URL('manifest.webmanifest', root), 'utf8'));
   for (const [key, value] of Object.entries({
-    name: 'Macro Diary', short_name: 'Macro Diary', start_url: './', scope: './',
+    name: 'Shredz', short_name: 'Shredz', start_url: './', scope: './',
     display: 'standalone', orientation: 'portrait',
     background_color: '#070B12', theme_color: '#070B12',
   })) assert.equal(manifest[key], value, key);

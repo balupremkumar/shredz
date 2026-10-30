@@ -101,9 +101,9 @@ test('CSV exports and larger text', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(today), weights: [{ date: today, kg: 82.4 }] });
   await page.getByRole('button', { name: 'Settings' }).click();
   const [diary] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export diary CSV' }).click()]);
-  expect(diary.suggestedFilename()).toBe(`macro-diary-diary-${today}.csv`);
+  expect(diary.suggestedFilename()).toBe(`shredz-diary-${today}.csv`);
   const [weights] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export weights CSV' }).click()]);
-  expect(weights.suggestedFilename()).toBe(`macro-diary-weights-${today}.csv`);
+  expect(weights.suggestedFilename()).toBe(`shredz-weights-${today}.csv`);
   await page.getByLabel('Larger text').check();
   await expect(page.locator('html')).toHaveAttribute('data-text', 'large');
   await page.setViewportSize({ width: 375, height: 812 });

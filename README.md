@@ -1,4 +1,4 @@
-# Macro Diary
+# Shredz
 
 A small food and weight diary that runs entirely on your iPhone as a home-screen web app.
 Log meals by tapping or by dictating, see calories, protein, carbs and fat add up as you go, and copy yesterday's meals in one tap.
@@ -8,7 +8,7 @@ No account, no server, no sync: your data stays in the phone's browser storage, 
 
 <img src="icons/install-qr.png" alt="QR code for the app" width="160">
 
-1. Scan the code with the iPhone camera, or open https://balupremkumar.github.io/macro-diary/ in Safari.
+1. Scan the code with the iPhone camera, or open https://balupremkumar.github.io/shredz/ in Safari.
 2. Tap the Share button.
 3. Tap Add to Home Screen, then Add.
 

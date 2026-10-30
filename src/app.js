@@ -51,7 +51,7 @@ function iconButton(name, label, click) {
 }
 
 async function boot() {
-  main.appendChild(h('div', { class: 'empty', text: 'Loading Macro Diary...' }));
+  main.appendChild(h('div', { class: 'empty', text: 'Loading Shredz...' }));
   let controller;
   try {
     const store = createStore(createIdbBackend());
@@ -60,7 +60,7 @@ async function boot() {
   } catch {
     clear(root);
     root.appendChild(h('div', { class: 'empty', attrs: { role: 'alert' } },
-      h('p', { text: 'Storage is not available. If this is a private browsing tab, open Macro Diary from your home screen instead.' }),
+      h('p', { text: 'Storage is not available. If this is a private browsing tab, open Shredz from your home screen instead.' }),
       h('button', { class: 'pill pill--primary', text: 'Try again', attrs: { type: 'button' }, on: { click: () => location.reload() } }),
     ));
     return;

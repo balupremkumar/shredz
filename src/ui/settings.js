@@ -39,7 +39,7 @@ async function exportBackup(app) {
       app.toast(result.error);
       return;
     }
-    await shareOrDownload(app, result, 'application/json', 'Macro Diary backup');
+    await shareOrDownload(app, result, 'application/json', 'Shredz backup');
   } catch (error) {
     if (error.name !== 'AbortError') app.toast(error.message || 'Could not export the backup.');
   }
@@ -52,7 +52,7 @@ async function exportCsv(app, kind) {
       app.toast(result.error);
       return;
     }
-    await shareOrDownload(app, result, 'text/csv', `Macro Diary ${kind} CSV`);
+    await shareOrDownload(app, result, 'text/csv', `Shredz ${kind} CSV`);
   } catch (error) {
     if (error.name !== 'AbortError') app.toast(error.message || 'Could not export the CSV.');
   }
@@ -264,7 +264,7 @@ export function render(root, app) {
     ].map(text => h('li', { class: 'row', text }))),
     h('p', { class: 'muted', text: 'It then opens full screen and works without signal.' })],
   ));
-  root.appendChild(section(`Macro Diary ${APP_VERSION}`,
+  root.appendChild(section(`Shredz ${APP_VERSION}`,
     h('p', { class: 'muted', text: 'Data stays on this phone. No account, no tracking.' }),
     button('Back to Diary', 'link-btn', () => app.actions.setTab('diary')),
   ));

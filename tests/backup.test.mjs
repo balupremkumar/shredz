@@ -43,7 +43,7 @@ test('realistic backup round trip, envelope, formatting and dated file name', ()
   assert.equal(BACKUP_SCHEMA, 2);
   assert.deepEqual(JSON.parse(text), { app: 'macro-diary', schema: 2, exportedAt: ts, ...data });
   assert.equal(text, JSON.stringify(JSON.parse(text), null, 2));
-  assert.equal(backupFileName('2026-10-31'), 'macro-diary-2026-10-31.json');
+  assert.equal(backupFileName('2026-10-31'), 'shredz-backup-2026-10-31.json');
 });
 
 test('foods-only imports fill defaults, including missing aliases', () => {

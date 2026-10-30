@@ -185,7 +185,7 @@ export function createApp({ store, makeId, today }) {
       if (!['diary', 'weights'].includes(kind)) throw new Error('CSV kind must be diary or weights');
       const text = kind === 'diary' ? insights.diaryCsv(state.data.entries, foodsById())
         : insights.weightsCsv(state.data.weights);
-      return { ok: true, fileName: `macro-diary-${kind}-${today()}.csv`, text };
+      return { ok: true, fileName: `shredz-${kind}-${today()}.csv`, text };
     }),
     exportBackup: nowIso => attempt(() => ({ ok: true,
       fileName: backup.backupFileName(today()),

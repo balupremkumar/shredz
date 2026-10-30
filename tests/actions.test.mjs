@@ -129,7 +129,7 @@ test('backup replace restores data, invalid files preserve it and merge keeps en
   await app.actions.saveGoals({ kcal: 2000, protein: 160, carbs: 200, fat: 60 });
   const exported = app.actions.exportBackup('2026-10-31T12:00:00Z');
   assert.equal(exported.ok, true);
-  assert.equal(exported.fileName, 'macro-diary-2026-10-31.json');
+  assert.equal(exported.fileName, 'shredz-backup-2026-10-31.json');
   const fresh = setup().app;
   await fresh.init();
   assert.deepEqual(await fresh.actions.importBackup(exported.text, 'replace'),
@@ -245,7 +245,7 @@ test('backup file name uses local today while exportedAt keeps the UTC timestamp
   const timestamp = '2026-10-30T20:00:00.000Z';
   const result = app.actions.exportBackup(timestamp);
   assert.equal(result.ok, true);
-  assert.equal(result.fileName, 'macro-diary-2026-10-31.json');
+  assert.equal(result.fileName, 'shredz-backup-2026-10-31.json');
   assert.equal(JSON.parse(result.text).exportedAt, timestamp);
 });
 
@@ -329,10 +329,10 @@ test('goal modes, merged goals, large text, csv and insight selectors', async ()
   await app.actions.addParsed(date, app.select.preview(dictation));
   await app.actions.logWeight('2026-10-30', 84);
   const diary = app.actions.exportCsv('diary');
-  assert.equal(diary.fileName, 'macro-diary-diary-2026-10-31.csv');
+  assert.equal(diary.fileName, 'shredz-diary-2026-10-31.csv');
   assert.match(diary.text, /^date,meal,food,qty,unit,kcal,protein,carbs,fat\r\n/);
   const weights = app.actions.exportCsv('weights');
-  assert.equal(weights.fileName, 'macro-diary-weights-2026-10-31.csv');
+  assert.equal(weights.fileName, 'shredz-weights-2026-10-31.csv');
   assert.equal(weights.text, 'date,kg\r\n2026-10-30,84\r\n');
   assert.equal(app.actions.exportCsv('other').ok, false);
   const { entries, weights: all } = app.getState().data;

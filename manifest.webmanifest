@@ -1,6 +1,6 @@
 {
-  "name": "Macro Diary",
-  "short_name": "Macro Diary",
+  "name": "Shredz",
+  "short_name": "Shredz",
   "description": "A local-only food and weight diary.",
   "start_url": "./",
   "scope": "./",
