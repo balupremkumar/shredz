@@ -38,6 +38,14 @@ function toast(message) {
   toastTimer = setTimeout(() => clear(toastRoot), 3000);
 }
 
+// Home-screen badge while today's weight is missing. iOS shows it only for the installed
+// app after notification permission is granted; elsewhere the calls quietly do nothing.
+function updateBadge(needed) {
+  if (!('setAppBadge' in navigator)) return;
+  const call = needed ? navigator.setAppBadge(1) : navigator.clearAppBadge();
+  call.catch(() => {});
+}
+
 function iconButton(name, label, click) {
   return h('button', { class: 'icon-btn', attrs: { type: 'button', 'aria-label': label }, on: { click } }, icon(name));
 }
@@ -64,6 +72,9 @@ async function boot() {
     const state = controller.getState();
     const screen = screens[state.tab];
     const app = { state, actions, select, toast, rerender: render };
+    if (state.data.settings.largeText) document.documentElement.dataset.text = 'large';
+    else delete document.documentElement.dataset.text;
+    updateBadge(select.needsWeighIn());
     for (const element of [topbar, main, dock, tabbar, sheetRoot]) clear(element);
     if (state.tab === 'diary') {
       topbar.appendChild(h('div', { class: 'datenav' },
