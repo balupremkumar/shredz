@@ -98,7 +98,8 @@ async function boot() {
       sheetRoot.appendChild(h('div', { class: 'sheet-backdrop', on: { click: () => actions.closeSheet() } }));
       sheetRoot.appendChild(panel);
       sheet(panel, app, state.sheet.props);
-      panel.focus();
+      // A sheet may focus its own field (the dictate box must, so iOS raises the keyboard).
+      if (!panel.contains(document.activeElement)) panel.focus();
     }
   }
 
