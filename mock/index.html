@@ -3,138 +3,151 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Macro Diary mock</title>
+<meta name="color-scheme" content="dark">
+<title>Macro Diary mock v2</title>
+<!-- Mock only: Schibsted Grotesk from Google Fonts. The real app self-hosts it. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600&display=swap">
 <style>
 :root{
-  --page:#e4e4e6; --bg:#ffffff; --ink:#111113; --grey:#6b6b72; --line:#dcdce0; --track:#e6e6ea;
-  --accent:#0A5BD8; --accent-text:#0A5BD8; --on-accent:#ffffff; --red:#C21F18;
-  --kbd:#d2d4da; --key:#ffffff; --keyink:#111113; --dim:rgba(0,0,0,.4); --field:#f4f4f6;
+  --abyss:#05080E; --bg:#070B12; --surface:#0D1320; --surface-2:#111A29; --elevated:#16202F;
+  --line:rgba(128,168,212,.10); --line-strong:rgba(128,168,212,.20);
+  --text:#EAF1F8; --muted:#94A6BC; --faint:#71839A;
+  --ice:#9AE9FF; --azure:#43A6F5; --red:#FF5C6A; --ink-on-accent:#04101F;
+  --r:8px; --pill:999px;
+  --font:'Schibsted Grotesk',system-ui,-apple-system,"SF Pro Text","Segoe UI",sans-serif;
 }
-@media (prefers-color-scheme:dark){
-  :root{
-    --page:#1b1b1d; --bg:#000000; --ink:#f2f2f5; --grey:#9d9da5; --line:#2c2c30; --track:#2c2c30;
-    --accent:#0A5BD8; --accent-text:#5E9BFF; --on-accent:#ffffff; --red:#FF6F66;
-    --kbd:#242427; --key:#4a4a4f; --keyink:#f2f2f5; --dim:rgba(0,0,0,.6); --field:#141416;
-  }
-}
-*{box-sizing:border-box;border-radius:0;margin:0;padding:0}
-html,body{background:var(--page)}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;font-size:16px;line-height:1.25;color:var(--ink);font-variant-numeric:tabular-nums;padding:24px}
-.stage{display:flex;flex-wrap:wrap;gap:32px;justify-content:center;align-items:flex-start}
-.slot .cap{font-size:13px;color:var(--grey);margin-bottom:8px}
-.screen{width:390px;height:844px;position:relative;overflow:hidden;background:var(--bg);outline:1px solid var(--line)}
-button,input,textarea{font:inherit;color:inherit;background:none;border:0;border-radius:0;font-variant-numeric:tabular-nums}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--abyss);color-scheme:dark}
+body{font-family:var(--font);font-size:16px;line-height:1.3;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.01em;padding:20px}
+.stage{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;align-items:flex-start}
+.cap{font-size:13px;color:var(--muted);margin-bottom:8px}
+.screen{width:390px;height:844px;position:relative;overflow:hidden;background:var(--bg);outline:1px solid var(--line-strong)}
+button,input,textarea{font:inherit;letter-spacing:inherit;color:inherit;background:none;border:0;font-variant-numeric:tabular-nums}
 button{cursor:pointer}
 .status{height:47px}
 .abs{position:absolute;left:0;right:0}
 .scroll{position:absolute;left:0;right:0;top:47px;overflow-y:auto;overflow-x:hidden;padding:0 16px 16px}
-.small{font-size:13px;color:var(--grey)}
-.txtbtn{color:var(--accent-text);min-height:44px;min-width:44px;padding:0 4px;font-weight:600}
+.muted{color:var(--muted)}
+
+/* buttons: Cursor-style pills, one azure primary per view */
+.pill{height:48px;border-radius:var(--pill);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:500;font-size:16px;padding:0 20px;white-space:nowrap}
+.pill.p{background:var(--azure);color:var(--ink-on-accent)}
+.pill.s{background:var(--surface-2);border:1px solid var(--line-strong);color:var(--text)}
+.link{min-height:44px;min-width:44px;color:var(--muted);font-weight:500;padding:0 14px 0 0}
+.link.t{color:var(--text)}
 
 /* top bar */
-.top{position:relative;height:52px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px}
-.top .nav{display:flex;align-items:center;gap:4px}
-.top .nav button{width:44px;height:44px;font-size:28px;line-height:1;color:var(--accent-text)}
+.top{position:relative;height:52px;display:flex;align-items:center;justify-content:center}
+.top .nav{display:flex;align-items:center}
+.top .nav button{width:44px;height:44px;font-size:26px;line-height:1;color:var(--muted)}
 .top .title{text-align:center;min-width:96px}
-.top .title b{display:block;font-size:17px}
-.top .title span{font-size:13px;color:var(--grey)}
-.top .gear{position:absolute;right:4px;top:4px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
-.top h1{font-size:17px;font-weight:700}
+.top .title b{display:block;font-size:17px;font-weight:500}
+.top .title span{font-size:13px;color:var(--muted)}
+.top .gear{position:absolute;right:-6px;top:4px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.top h1{font-size:17px;font-weight:500}
 
-/* summary */
-.eq{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0 10px}
+/* summary hero */
+.eq{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0 14px}
 .eq .col{text-align:center;flex:1}
-.eq .num{font-size:26px;font-weight:700;line-height:1.1}
-.eq .lab{font-size:13px;color:var(--grey);margin-top:2px}
-.eq .op{font-size:22px;color:var(--grey);width:24px;text-align:center;line-height:1.2}
-.eq .rem .num{color:var(--accent-text)}
-.mac{padding:5px 0}
+.eq .num{font-size:31px;font-weight:400;letter-spacing:-.045em;line-height:1.05}
+.eq .lab{font-size:13px;color:var(--muted);margin-top:4px}
+.eq .op{font-size:20px;font-weight:400;color:var(--faint);width:14px;text-align:center;line-height:1.3}
+.eq .rem .num{color:var(--ice)}
+.mac{padding:4px 0}
 .mac .l{display:flex;justify-content:space-between;font-size:16px;line-height:1.2}
-.mac .l span:last-child{font-weight:600}
-.bar{height:4px;background:var(--track);margin-top:4px}
-.bar i{display:block;height:4px;background:var(--ink)}
+.mac .l span:first-child{color:var(--muted)}
+.mac .l span:last-child{font-weight:500}
+.bar{height:3px;background:var(--surface-2);margin-top:5px}
+.bar i{display:block;height:3px;background:var(--azure)}
 .bar i.over{background:var(--red)}
-.wrow{display:flex;align-items:center;min-height:48px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:10px;width:100%;text-align:left;gap:8px}
-.wrow .lbl{color:var(--grey)}
-.wrow .val{font-weight:700}
-.wrow .dl{margin-left:auto;font-size:14px;color:var(--grey)}
-.wrow .ch{color:var(--grey);font-size:20px}
+.wrow{display:flex;align-items:center;min-height:48px;margin-top:10px;width:100%;text-align:left;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 14px}
+.wrow .lbl{color:var(--muted)}
+.wrow .val{font-weight:500;color:var(--ice)}
+.wrow .dl{margin-left:auto;font-size:14px;color:var(--muted)}
+.wrow .chv{color:var(--faint);font-size:20px}
 
 /* meals */
-.meal{margin-top:16px}
-.mh{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:6px}
-.mh b{font-size:17px}
-.mh .k{font-weight:700}
-.mh+.pcf{font-size:13px;color:var(--grey);padding-top:2px}
-.item{display:flex;justify-content:space-between;align-items:center;min-height:48px;border-bottom:1px solid var(--line);padding:4px 0}
-.item .n{font-size:16px}
-.item .q{font-size:13px;color:var(--grey)}
-.item .k{font-weight:600}
-.foot{display:flex;gap:16px;border-bottom:1px solid var(--line)}
-.foot .txtbtn{padding:0}
-.copyline{display:flex;align-items:center;min-height:48px;border-bottom:1px solid var(--line);color:var(--accent-text);font-weight:600;width:100%;text-align:left}
+.meal{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 14px}
+.mh{display:flex;justify-content:space-between;align-items:baseline;padding-top:10px}
+.mh b{font-size:17px;font-weight:500}
+.mh .k{font-weight:500}
+.pcf{font-size:13px;color:var(--muted);padding:1px 0 4px}
+.item{display:flex;justify-content:space-between;align-items:center;min-height:46px;border-top:1px solid var(--line);padding:3px 0}
+.item .n{font-size:16px;line-height:1.2}
+.item .q{font-size:13px;color:var(--muted);line-height:1.2}
+.foot{display:flex;gap:6px;border-top:1px solid var(--line)}
+.copyline{display:flex;align-items:center;min-height:46px;border-top:1px solid var(--line);color:var(--text);font-weight:500;width:100%;text-align:left}
 
-/* dictate bar + tabs */
-.dbar{bottom:84px;height:64px;background:var(--bg);border-top:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 16px}
-.dbtn{flex:1;height:48px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:17px}
-.dbar .txtbtn{white-space:nowrap}
+/* fixed bars */
+.dbar{bottom:84px;height:64px;background:var(--bg);display:flex;align-items:center;gap:8px;padding:0 16px;border-top:1px solid var(--line)}
+.dbar .p{flex:1}
 .tabs{bottom:0;height:84px;background:var(--bg);border-top:1px solid var(--line);display:flex;padding-bottom:34px}
-.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--grey);font-size:13px}
-.tabs button.on{color:var(--accent-text);font-weight:700}
-.home{position:absolute;bottom:8px;left:128px;width:134px;height:5px;background:var(--ink)}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--faint);font-size:13px}
+.tabs button.on{color:var(--text);font-weight:500}
+.home{position:absolute;bottom:8px;left:128px;width:134px;height:5px;background:var(--text);border-radius:var(--pill);opacity:.85}
 
-/* sheet */
-.dim{position:absolute;inset:0;background:var(--dim)}
-.sheet{position:absolute;left:0;right:0;bottom:0;height:717px;background:var(--bg);border-top:1px solid var(--line);display:flex;flex-direction:column}
-.sh-head{height:48px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 16px;border-bottom:1px solid var(--line)}
-.sh-head b{font-size:17px}
-.hint{flex:none;padding:8px 16px 6px;font-size:14px;color:var(--grey);line-height:1.3}
-.ta{flex:none;margin:0 16px;height:84px;width:calc(100% - 32px);border:1px solid var(--line);background:var(--field);padding:6px 8px;font-size:16px;line-height:1.3;resize:none;overflow:auto}
-.preview{flex:1;min-height:0;overflow-y:auto;padding:4px 16px 0}
-.pr-h{display:flex;justify-content:space-between;font-weight:700;padding-top:6px;border-bottom:1px solid var(--line);padding-bottom:3px}
-.pr-i{display:flex;justify-content:space-between;min-height:32px;align-items:center;border-bottom:1px solid var(--line);font-size:16px}
-.pr-i span:first-child small{font-size:13px;color:var(--grey);margin-left:6px}
-.pr-s{display:flex;justify-content:space-between;font-size:14px;color:var(--grey);padding:4px 0}
-.bad{border-left:3px solid var(--red);padding-left:10px;margin:6px 0 4px}
-.bad .t{color:var(--red);font-weight:700;padding-top:6px}
-.bad .acts{display:flex;gap:8px}
-.bad .txtbtn{padding:0 8px 0 0}
-.bad .txtbtn.rm{color:var(--red)}
-.tot{flex:none;height:32px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;padding:0 16px;font-weight:700}
-.save{flex:none;height:52px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:17px;width:100%}
-.kbd{flex:none;height:291px;background:var(--kbd);padding:10px 4px 0;display:flex;flex-direction:column;gap:12px;position:relative}
+/* sheets */
+.dim{position:absolute;inset:0;background:rgba(2,4,8,.62)}
+.sheet{position:absolute;left:0;right:0;bottom:0;height:717px;background:var(--surface);border-top:1px solid var(--line-strong);border-radius:var(--r) var(--r) 0 0;display:flex;flex-direction:column}
+.sh-head{height:52px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px}
+.sh-head b{font-size:17px;font-weight:500}
+.sh-head .link{padding:0 8px;color:var(--text)}
+.hint{flex:none;padding:0 16px 10px;font-size:14px;color:var(--muted);line-height:1.35}
+.ta{flex:none;margin:0 16px;height:112px;width:calc(100% - 32px);border:1px solid var(--line-strong);background:var(--bg);border-radius:var(--r);padding:10px 12px;font-size:16px;line-height:1.35;resize:none;overflow:auto}
+.live{flex:1;min-height:0;padding:8px 16px 0}
+.lrow{display:flex;align-items:center;min-height:36px;gap:10px;border-bottom:1px solid var(--line)}
+.lrow b{font-weight:500;width:56px}
+.lrow span{color:var(--muted);flex:1}
+.lrow em{font-style:normal;font-weight:500}
+.lbad{color:var(--red);font-weight:500;padding-top:10px}
+.sv-wrap{flex:none;padding:8px 16px 10px}
+.sv-wrap .pill{width:100%}
+.kbd{flex:none;height:291px;background:#1d2128;padding:10px 4px 0;display:flex;flex-direction:column;gap:12px;position:relative}
 .kr{display:flex;gap:6px;justify-content:center}
-.kr div{height:42px;background:var(--key);color:var(--keyink);display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 33px}
+.kr div{height:42px;background:#3b414b;color:#eef2f7;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:0 0 33px}
 .kr div.w{flex:0 0 44px}
 .kr div.sp{flex:1}
 .kr div.f{flex:0 0 88px;font-size:15px}
-.kmic{position:absolute;right:12px;bottom:34px;width:44px;height:44px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center}
-.kmic-note{position:absolute;right:64px;bottom:44px;font-size:13px;color:var(--grey)}
+.kmic{position:absolute;right:12px;bottom:34px;width:44px;height:44px;background:#3b414b;color:#eef2f7;border-radius:5px;display:flex;align-items:center;justify-content:center}
+
+/* confirm */
+.cf{flex:1;min-height:0;overflow:hidden;padding:0 16px}
+.cmeal{background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin-bottom:10px}
+.cmeal .mh b{font-size:16px}
+.citem{display:flex;justify-content:space-between;align-items:center;min-height:44px;border-top:1px solid var(--line)}
+.citem small{font-size:13px;color:var(--muted);margin-left:8px}
+.cbad{border:1px solid rgba(255,92,106,.45);border-radius:var(--r);padding:8px 14px 0;margin-bottom:10px}
+.cbad .t{color:var(--red);font-weight:500}
+.cbad .acts{display:flex}
+.cbad .link.rm{color:var(--red)}
+.cta{flex:none;padding:8px 16px 34px}
+.cta .pill{width:100%;height:52px}
 
 /* weight */
-.entry{padding:14px 0 12px;border-bottom:1px solid var(--line)}
-.entry .small{margin-bottom:6px}
+.entry{padding:6px 0 14px}
+.entry .lab{font-size:13px;color:var(--muted);margin-bottom:8px}
 .erow{display:flex;gap:8px}
-.erow .fld{flex:1;min-width:0;height:48px;border:1px solid var(--line);background:var(--field);display:flex;align-items:center;padding:0 12px;gap:6px}
-.erow input{flex:1;min-width:0;font-size:22px;font-weight:700;height:44px}
-.erow .u{color:var(--grey)}
-.erow .sv{flex:none;width:96px;height:48px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:17px}
-.chart{padding:12px 0 4px;border-bottom:1px solid var(--line)}
-.chart h2,.recent h2{font-size:17px;font-weight:700;margin-bottom:4px}
-.chart svg{display:block;width:100%;height:auto}
-.chart text{font-size:13px;fill:var(--grey);font-family:inherit}
-.recent{padding-top:12px}
-.rec{display:flex;align-items:center;min-height:48px;border-bottom:1px solid var(--line)}
+.erow .fld{flex:1;min-width:0;height:52px;border:1px solid var(--line-strong);background:var(--surface);border-radius:var(--r);display:flex;align-items:center;padding:0 14px;gap:6px}
+.erow input{flex:1;min-width:0;font-size:30px;font-weight:400;letter-spacing:-.04em;color:var(--ice);height:48px}
+.erow .u{color:var(--muted)}
+.erow .pill{flex:none;width:96px;height:52px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px 6px;margin-bottom:10px}
+.panel h2{font-size:16px;font-weight:500;margin-bottom:4px}
+.panel svg{display:block;width:100%;height:auto}
+.panel text{font-size:13px;fill:var(--muted);font-family:var(--font)}
+.rec{display:flex;align-items:center;min-height:46px;border-top:1px solid var(--line)}
 .rec .d{flex:1}
-.rec .kg{width:84px;text-align:right;font-weight:700}
-.rec .df{width:84px;text-align:right;color:var(--grey)}
+.rec .kg{width:80px;text-align:right;font-weight:500}
+.rec .df{width:70px;text-align:right;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="stage">
-  <div class="slot"><div class="cap">1. Diary</div><div class="screen" id="s1"></div></div>
-  <div class="slot"><div class="cap">2. Dictate sheet over Diary</div><div class="screen" id="s2"></div></div>
-  <div class="slot"><div class="cap">3. Weight tab</div><div class="screen" id="s3"></div></div>
+  <div><div class="cap">1. Diary</div><div class="screen" id="s1"></div></div>
+  <div><div class="cap">2. Dictate (keyboard up)</div><div class="screen" id="s2"></div></div>
+  <div><div class="cap">3. Confirm (keyboard down)</div><div class="screen" id="s4"></div></div>
+  <div><div class="cap">4. Weight tab</div><div class="screen" id="s3"></div></div>
 </div>
 
 <script>
@@ -142,9 +155,6 @@ button{cursor:pointer}
   var DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function comma(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
   function f1(n){return (Math.round(n*10+1e-9)/10).toFixed(1);}
-  function MINUS(s){return s.replace('-','−');}
-
-  /* values per baseQty of unit (100 for g/ml, 1 for item/scoop) */
   var FOODS={
     wb:{n:'Weet-Bix',u:'item',base:1,k:55,p:1.8,c:10.5,f:0.3},
     gm:{n:'Green milk',u:'ml',base:100,k:46,p:3.5,c:5.0,f:1.5},
@@ -164,100 +174,100 @@ button{cursor:pointer}
   function sum(list){var t={k:0,p:0,c:0,f:0};list.forEach(function(e){var v=calc(e[0],e[1]);t.k+=v.k;t.p+=v.p;t.c+=v.c;t.f+=v.f;});return t;}
   var DAY=sum([].concat(MEALS[0].e,MEALS[1].e,MEALS[2].e));
   var FOODK=Math.round(DAY.k), REM=GOAL.k-FOODK;
+  var ADDS=Math.round(sum([].concat(MEALS[0].e,MEALS[1].e)).k);
 
   var ICON={
-    gear:'<svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="currentColor"/><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-dasharray="3.6 3.6"/><circle cx="12" cy="12" r="3" fill="var(--bg)"/></svg>',
-    mic:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 2h6v12H9z"/><path fill="none" stroke="currentColor" stroke-width="2.2" d="M5 11v2a7 7 0 0 0 14 0v-2"/><path fill="currentColor" d="M11 19h2v3h-2z"/></svg>',
+    gear:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="currentColor"/><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="3.6" stroke-dasharray="3.6 3.6"/><circle cx="12" cy="12" r="3" fill="var(--bg)"/></svg>',
+    mic:'<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path fill="none" stroke="currentColor" stroke-width="2.2" d="M5 11v2a7 7 0 0 0 14 0v-2"/><path fill="currentColor" d="M11 19h2v3h-2z"/></svg>',
     diary:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M5 3h14v18H5z M8 7h8v2H8z M8 11h8v2H8z M8 15h5v2H8z"/></svg>',
     foods:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18z M12 8a4 4 0 1 1 0 8a4 4 0 0 1 0-8z"/></svg>',
     weight:'<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M3 4h18v16H3z M7 8h10v3H7z"/></svg>'
   };
-
   function tabs(active){
     return '<nav class="abs tabs">'+['Diary','Foods','Weight'].map(function(t){
       return '<button class="'+(t===active?'on':'')+'">'+ICON[t.toLowerCase()]+'<span>'+t+'</span></button>';}).join('')+'</nav><div class="home"></div>';
   }
-
-  function mealHtml(m,idx){
+  function mealHtml(m){
     var t=sum(m.e),h='<section class="meal"><div class="mh"><b>'+m.n+'</b><span class="k">'+comma(t.k)+' kcal</span></div>'+
       '<div class="pcf">P '+f1(t.p)+' · C '+f1(t.c)+' · F '+f1(t.f)+' g</div>';
     m.e.forEach(function(e){var v=calc(e[0],e[1]);
-      h+='<div class="item"><div><div class="n">'+FOODS[e[0]].n+'</div><div class="q">'+qtxt(e[0],e[1])+'</div></div><div class="k">'+comma(v.k)+'</div></div>';});
-    if(!m.e.length) h+='<button class="copyline">Copy Meal 3 from yesterday (612 kcal)</button>';
-    h+='<div class="foot"><button class="txtbtn">Add food</button><button class="txtbtn">Copy...</button></div></section>';
-    return h;
+      h+='<div class="item"><div><div class="n">'+FOODS[e[0]].n+'</div><div class="q">'+qtxt(e[0],e[1])+'</div></div><div>'+comma(v.k)+'</div></div>';});
+    if(!m.e.length) h+='<button class="copyline">Copy Meal 3 from yesterday, 612 kcal</button>';
+    return h+'<div class="foot"><button class="link t">Add food</button><button class="link">Copy...</button></div></section>';
   }
-
   function macro(label,v,g){
-    var pct=Math.min(100,v/g*100);
-    return '<div class="mac"><div class="l"><span>'+label+'</span><span>'+f1(v)+' / '+g+' g</span></div><div class="bar"><i class="'+(v>g?'over':'')+'" style="width:'+pct+'%"></i></div></div>';
+    return '<div class="mac"><div class="l"><span>'+label+'</span><span>'+f1(v)+' / '+g+' g</span></div><div class="bar"><i class="'+(v>g?'over':'')+'" style="width:'+Math.min(100,v/g*100)+'%"></i></div></div>';
   }
-
   function diaryInner(){
     return '<div class="status"></div>'+
-    '<div class="scroll" style="top:47px;bottom:148px">'+
+    '<div class="scroll" style="bottom:148px">'+
       '<div class="top"><div class="nav"><button aria-label="Previous day">‹</button><div class="title"><b>Today</b><span>Sat 31 Oct</span></div><button aria-label="Next day">›</button></div><button class="gear" aria-label="Settings">'+ICON.gear+'</button></div>'+
       '<div class="eq"><div class="col"><div class="num">'+comma(GOAL.k)+'</div><div class="lab">Goal</div></div><div class="op">−</div>'+
         '<div class="col"><div class="num">'+comma(FOODK)+'</div><div class="lab">Food</div></div><div class="op">=</div>'+
         '<div class="col rem"><div class="num">'+comma(REM)+'</div><div class="lab">Remaining</div></div></div>'+
       macro('Protein',DAY.p,GOAL.p)+macro('Carbs',DAY.c,GOAL.c)+macro('Fat',DAY.f,GOAL.f)+
-      '<button class="wrow"><span class="lbl">Morning weight</span><span class="val">82.4 kg</span><span class="dl">▼0.6 this week</span><span class="ch">›</span></button>'+
+      '<button class="wrow"><span class="lbl">Morning weight</span><span class="val">82.4 kg</span><span class="dl">▼0.6 this week</span><span class="chv">›</span></button>'+
       MEALS.map(mealHtml).join('')+
     '</div>'+
-    '<div class="abs dbar"><button class="dbtn">'+ICON.mic+'<span>Dictate</span></button><button class="txtbtn">Copy yesterday</button></div>'+
+    '<div class="abs dbar"><button class="pill p">'+ICON.mic+'<span>Dictate</span></button><button class="pill s">Copy yesterday</button></div>'+
     tabs('Diary');
   }
   document.getElementById('s1').innerHTML=diaryInner();
 
-  /* screen 2 */
+  /* screen 2: dictate, keyboard up, compact live line */
   var DICT='Meal number one, 2 Weet-Bix, green milk 200 mils and one scoop of whey protein. Meal number two, chicken breast 125 grams, basmati rice 150 grams and 20 grams of cashews. And 3 bananas. Save.';
-  function prMeal(m){
-    var t=sum(m.e),h='<div class="pr-h"><span>'+m.n+'</span></div>';
-    m.e.forEach(function(e){h+='<div class="pr-i"><span>'+FOODS[e[0]].n+'<small>'+qtxt(e[0],e[1])+'</small></span><span>'+comma(calc(e[0],e[1]).k)+'</span></div>';});
-    return h+'<div class="pr-s"><span>Subtotal</span><span>'+comma(t.k)+' kcal</span></div>';
-  }
-  var ADDS=Math.round(sum([].concat(MEALS[0].e,MEALS[1].e)).k);
   var kb='';
   ['qwertyuiop','asdfghjkl'].forEach(function(r){kb+='<div class="kr">'+r.split('').map(function(c){return '<div>'+c+'</div>';}).join('')+'</div>';});
   kb+='<div class="kr"><div class="w">⇧</div>'+'zxcvbnm'.split('').map(function(c){return '<div>'+c+'</div>';}).join('')+'<div class="w">⌫</div></div>';
   kb+='<div class="kr"><div class="f">123</div><div class="sp">space</div><div class="f">return</div></div>';
+  function liveRow(m){var t=sum(m.e);return '<div class="lrow"><b>'+m.n+'</b><span>'+m.e.length+' items</span><em>'+comma(t.k)+' kcal</em></div>';}
   document.getElementById('s2').innerHTML=diaryInner()+'<div class="dim"></div>'+
     '<div class="sheet">'+
-      '<div class="sh-head"><b>Dictate</b><button class="txtbtn">Cancel</button></div>'+
+      '<div class="sh-head"><b>Dictate</b><button class="link">Cancel</button></div>'+
       '<p class="hint">Tap the mic on your keyboard and say: meal one, 2 Weet-Bix, green milk 200 mils... then say save.</p>'+
       '<textarea class="ta" aria-label="Dictation text">'+DICT+'</textarea>'+
-      '<div class="preview">'+
-        '<div class="bad"><div class="t">Not recognised: 3 bananas</div><div class="acts"><button class="txtbtn">Add as food</button><button class="txtbtn rm">Remove</button></div></div>'+
-        prMeal(MEALS[0])+prMeal(MEALS[1])+
-      '</div>'+
-      '<div class="tot"><span>Adds '+comma(ADDS)+' kcal</span></div>'+
-      '<button class="save">Save</button>'+
+      '<div class="live">'+liveRow(MEALS[0])+liveRow(MEALS[1])+'<div class="lbad">1 not recognised: 3 bananas</div></div>'+
+      '<div class="sv-wrap"><button class="pill p">Save</button></div>'+
       '<div class="kbd">'+kb+'<div class="kmic">'+ICON.mic+'</div></div>'+
     '</div>';
-  /* day total on screen 2: the diary behind is the current saved state, so "after saving" would double count; keep note simple */
 
-  /* screen 3 */
+  /* screen 4 (shown third): confirm, keyboard down */
+  function cMeal(m){
+    var t=sum(m.e),h='<div class="cmeal"><div class="mh"><b>'+m.n+'</b><span class="k">'+comma(t.k)+' kcal</span></div><div class="pcf">P '+f1(t.p)+' · C '+f1(t.c)+' · F '+f1(t.f)+' g</div>';
+    m.e.forEach(function(e){h+='<div class="citem"><span>'+FOODS[e[0]].n+'<small>'+qtxt(e[0],e[1])+'</small></span><span>'+comma(calc(e[0],e[1]).k)+'</span></div>';});
+    return h+'</div>';
+  }
+  document.getElementById('s4').innerHTML=diaryInner()+'<div class="dim"></div>'+
+    '<div class="sheet">'+
+      '<div class="sh-head"><b>Confirm</b><button class="link">Cancel</button></div>'+
+      '<div class="cf">'+cMeal(MEALS[0])+cMeal(MEALS[1])+
+        '<div class="cbad"><div class="t">Not recognised: 3 bananas</div><div class="acts"><button class="link t">Add as food</button><button class="link rm">Remove</button></div></div>'+
+      '</div>'+
+      '<div class="cta"><button class="pill p">Add '+comma(ADDS)+' kcal to today</button></div>'+
+    '</div>';
+
+  /* screen 3: weight */
   var W=[84.1,84.0,84.2,83.9,83.8,83.9,83.7,83.6,83.8,83.5,83.4,83.5,83.3,83.2,83.3,83.1,83.0,83.2,83.1,83.2,83.0,83.1,83.0,82.9,82.9,82.7,82.6,82.7,82.5,82.4];
   var base=Date.UTC(2026,9,31);
   function dstr(i){var d=new Date(base-(29-i)*864e5);return DAYS[d.getUTCDay()]+' '+d.getUTCDate()+' '+MON[d.getUTCMonth()];}
-  var cw=358,ch=190,L=38,R=8,T=10,B=26,mn=82,mx=84.5;
+  var cw=328,ch=170,L=30,R=6,T=8,B=26,mn=82,mx=84.5;
   function X(i){return L+(cw-L-R)*i/29;}
   function Y(v){return T+(ch-T-B)*(mx-v)/(mx-mn);}
   var pts=W.map(function(v,i){return X(i).toFixed(1)+','+Y(v).toFixed(1);}).join(' ');
-  var grid='';[82,83,84].forEach(function(v){grid+='<line x1="'+L+'" x2="'+(cw-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';});
+  var grid='';[82,83,84].forEach(function(v){grid+='<line x1="'+L+'" x2="'+(cw-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="rgba(128,168,212,.14)"/><text x="'+(L-6)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>';});
   var svg='<svg viewBox="0 0 '+cw+' '+ch+'" role="img" aria-label="Weight, last 30 days, 84.1 to 82.4 kg">'+grid+
-    '<polyline points="'+pts+'" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="miter"/>'+
-    '<rect x="'+(X(29)-4)+'" y="'+(Y(82.4)-4)+'" width="8" height="8" fill="var(--accent-text)"/>'+
+    '<polyline points="'+pts+'" fill="none" stroke="var(--text)" stroke-width="1.75" stroke-linejoin="round"/>'+
+    '<circle cx="'+X(29)+'" cy="'+Y(82.4)+'" r="4.5" fill="var(--ice)"/>'+
     '<text x="'+L+'" y="'+(ch-6)+'">2 Oct</text><text x="'+X(14.5)+'" y="'+(ch-6)+'" text-anchor="middle">16 Oct</text><text x="'+(cw-R)+'" y="'+(ch-6)+'" text-anchor="end">Today</text></svg>';
   var rec='';
-  for(var i=29;i>=24;i--){var d=Math.round((W[i]-W[i-1])*10)/10;
-    rec+='<div class="rec"><span class="d">'+(i===29?'Today, ':'')+dstr(i)+'</span><span class="kg">'+W[i].toFixed(1)+' kg</span><span class="df">'+(d===0?'0.0':d>0?'+'+d.toFixed(1):MINUS(d.toFixed(1)))+'</span></div>';}
+  for(var i=29;i>=25;i--){var d=Math.round((W[i]-W[i-1])*10)/10;
+    rec+='<div class="rec"><span class="d">'+(i===29?'Today':dstr(i))+'</span><span class="kg">'+W[i].toFixed(1)+' kg</span><span class="df">'+(d===0?'0.0':d>0?'+'+d.toFixed(1):'−'+Math.abs(d).toFixed(1))+'</span></div>';}
   document.getElementById('s3').innerHTML='<div class="status"></div>'+
     '<div class="scroll" style="bottom:84px">'+
       '<div class="top"><h1>Weight</h1><button class="gear" aria-label="Settings">'+ICON.gear+'</button></div>'+
-      '<div class="entry"><div class="small">Today’s entry, Sat 31 Oct</div><div class="erow"><label class="fld"><input value="82.4" inputmode="decimal" aria-label="Weight in kilograms"><span class="u">kg</span></label><button class="sv">Save</button></div></div>'+
-      '<div class="chart"><h2>Last 30 days</h2>'+svg+'</div>'+
-      '<div class="recent"><h2>Recent entries</h2>'+rec+'</div>'+
+      '<div class="entry"><div class="lab">Today’s entry, Sat 31 Oct</div><div class="erow"><label class="fld"><input value="82.4" inputmode="decimal" aria-label="Weight in kilograms"><span class="u">kg</span></label><button class="pill p">Save</button></div></div>'+
+      '<div class="panel"><h2>Last 30 days</h2>'+svg+'</div>'+
+      '<div class="panel"><h2>Recent entries</h2>'+rec+'</div>'+
     '</div>'+tabs('Weight');
 })();
 </script>
