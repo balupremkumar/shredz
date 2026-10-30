@@ -92,7 +92,7 @@ export function render(root, app) {
   };
   root.appendChild(h('form', { class: 'section', on: { submit: save } },
     h('div', { class: 'section__head' },
-      h('label', { text: `${dayLabel(date, today)} weight`, attrs: { for: 'weight-entry' } })),
+      h('label', { text: date === today ? "Today's weight" : `Weight on ${dayLabel(date, today)}`, attrs: { for: 'weight-entry' } })),
     h('div', { class: 'row' }, input,
       h('span', { class: 'muted', text: 'kg' }),
       h('button', { class: 'pill pill--primary', text: 'Save', attrs: { type: 'submit' } })),

@@ -319,3 +319,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* Weight tab entry: input grows, unit and Save never wrap. */
+.row > .weigh-in__input { flex: 1 1 auto; width: auto; }
+.row > span, .row > .pill { flex: none; white-space: nowrap; }
