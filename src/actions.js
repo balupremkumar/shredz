@@ -108,7 +108,7 @@ export function createApp({ store, makeId, today }) {
       return updateData({ settings });
     }),
     exportBackup: nowIso => attempt(() => ({ ok: true,
-      fileName: backup.backupFileName(nowIso.slice(0, 10)),
+      fileName: backup.backupFileName(today()),
       text: backup.exportBackup(state.data, nowIso) })),
     importBackup: (text, mode) => write(async () => {
       if (!['replace', 'merge'].includes(mode)) throw new Error('Import mode must be replace or merge');

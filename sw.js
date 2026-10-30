@@ -30,7 +30,12 @@ const FILES = [
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    await cache.addAll(FILES);
+    await Promise.all(FILES.map(async url => {
+      const request = new Request(url, { cache: 'reload' });
+      const response = await fetch(request);
+      if (!response.ok) throw new Error(`Precache failed: ${url}`);
+      await cache.put(request, response);
+    }));
     await self.skipWaiting();
   })());
 });

@@ -54,6 +54,9 @@ export function parseBackup(text, knownFoodIds = new Set()) {
     if (!Array.isArray(data[key])) {
       problem(key, 'must be an array');
       data[key] = [];
+    } else if (data[key].length > 20000) {
+      problem(key, 'must contain at most 20000 records');
+      data[key] = [];
     }
   }
   const check = (path, field, valid, message) => {
@@ -62,46 +65,76 @@ export function parseBackup(text, knownFoodIds = new Set()) {
   const checkNutrients = (record, path) => {
     for (const key of nutrients) {
       check(path, key, nonNegative(record[key]), 'must be a finite non-negative number');
+      check(path, key, !Number.isFinite(record[key]) || record[key] <= 1e6, 'must be at most 1000000');
     }
   };
   const foodIds = new Set(knownFoodIds);
+  const fileFoodIds = new Set();
+  const entryIds = new Set();
+  const weightDates = new Set();
+  const unique = (value, seen, path, field) => {
+    if (seen.has(value)) problem(path, `${field} must be unique within the file`);
+    seen.add(value);
+  };
+  const checkId = (value, path) => {
+    check(path, 'id', typeof value === 'string', 'must be a string');
+    if (typeof value === 'string') check(path, 'id', value.trim().length > 0, 'must not be blank');
+  };
+  const pick = (record, keys) => Object.fromEntries(keys.map(key => [key, record[key]]));
   data.foods = data.foods.map((food, index) => {
     const path = `foods[${index}]`;
     if (!isObject(food)) {
       problem(path, 'must be an object');
       return food;
     }
-    check(path, 'id', typeof food.id === 'string', 'must be a string');
+    checkId(food.id, path);
+    unique(food.id, fileFoodIds, path, 'id');
     if (typeof food.id === 'string') foodIds.add(food.id);
     check(path, 'name', typeof food.name === 'string' && food.name.trim().length > 0,
       'must be a non-empty string');
+    check(path, 'name', typeof food.name !== 'string' || food.name.trim().length <= 200,
+      'must contain at most 200 characters after trimming');
     check(path, 'unit', ['g', 'ml', 'item', 'scoop'].includes(food.unit), 'must be g, ml, item or scoop');
     for (const key of ['baseQty', 'defaultQty']) {
       check(path, key, positive(food[key]), 'must be a positive number');
+      check(path, key, !Number.isFinite(food[key]) || food[key] <= 1e6, 'must be at most 1000000');
     }
     checkNutrients(food, path);
     const aliases = food.aliases === undefined ? [] : food.aliases;
     check(path, 'aliases', Array.isArray(aliases) && aliases.every(alias => typeof alias === 'string'),
       'must be an array of strings');
-    return { ...food, aliases };
+    if (Array.isArray(aliases)) {
+      check(path, 'aliases', aliases.length <= 50, 'must contain at most 50 aliases');
+      check(path, 'aliases', aliases.every(alias => typeof alias !== 'string' || alias.length <= 100),
+        'must contain at most 100 characters each');
+    }
+    return { ...pick(food, ['id', 'unit', 'baseQty', 'defaultQty', ...nutrients]),
+      name: typeof food.name === 'string' ? food.name.trim() : food.name, aliases };
   });
-  data.entries.forEach((entry, index) => {
+  data.entries = data.entries.map((entry, index) => {
     const path = `entries[${index}]`;
     if (!isObject(entry)) return problem(path, 'must be an object');
-    check(path, 'id', typeof entry.id === 'string', 'must be a string');
+    checkId(entry.id, path);
+    unique(entry.id, entryIds, path, 'id');
     check(path, 'date', isDate(entry.date), 'must match YYYY-MM-DD');
+    check(path, 'date', isCalendarDate(entry.date), 'must be a valid YYYY-MM-DD date');
     check(path, 'meal', Number.isInteger(entry.meal) && entry.meal >= 1, 'must be an integer at least 1');
+    check(path, 'meal', !Number.isFinite(entry.meal) || entry.meal <= 99, 'must be at most 99');
     check(path, 'foodId', typeof entry.foodId === 'string', 'must be a string');
     if (typeof entry.foodId === 'string' && !foodIds.has(entry.foodId)) {
       problem(path, `foodId ${entry.foodId} does not identify a known food`);
     }
     check(path, 'qty', positive(entry.qty), 'must be a positive number');
+    check(path, 'qty', !Number.isFinite(entry.qty) || entry.qty <= 1e6, 'must be at most 1000000');
+    return pick(entry, ['id', 'date', 'meal', 'foodId', 'qty']);
   });
-  data.weights.forEach((weight, index) => {
+  data.weights = data.weights.map((weight, index) => {
     const path = `weights[${index}]`;
     if (!isObject(weight)) return problem(path, 'must be an object');
     check(path, 'date', isCalendarDate(weight.date), 'must be a valid YYYY-MM-DD date');
+    unique(weight.date, weightDates, path, 'date');
     check(path, 'kg', positive(weight.kg) && weight.kg < 500, 'must be greater than 0 and under 500');
+    return pick(weight, ['date', 'kg']);
   });
   data.settings = file.settings === undefined ? null : file.settings;
   if (data.settings !== null) {
@@ -109,6 +142,7 @@ export function parseBackup(text, knownFoodIds = new Set()) {
       problem('settings', 'goals must be an object');
     } else {
       checkNutrients(data.settings.goals, 'settings.goals');
+      data.settings = { goals: pick(data.settings.goals, nutrients) };
     }
   }
   if (problems.length) throw new BackupError(problems);

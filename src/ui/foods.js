@@ -137,7 +137,8 @@ function foodEdit(root, app, props = {}) {
       const result = await app.actions.deleteFood(food.id);
       busy = false;
       if (!result.ok) {
-        showProblem("This food is in your diary, so it can't be deleted.");
+        showProblem(result.error === 'Food is used by a diary entry'
+          ? "This food is in your diary, so it can't be deleted." : result.error);
         return;
       }
       finish();
