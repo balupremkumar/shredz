@@ -56,6 +56,9 @@ function workerContext(cache, fetch) {
   const deleted = [];
   const context = {
     URL, fetch,
+    Request: class extends Request {
+      constructor(url, options) { super(new URL(url, 'https://example.test/macro-diary/'), options); }
+    },
     self: {
       location: { origin: 'https://example.test' },
       addEventListener: (name, handler) => { handlers[name] = handler; },
@@ -163,4 +166,38 @@ test('registration supports late boot, unsupported browsers and standalone modes
   context.navigator.standalone = false;
   context.matchMedia = query => ({ matches: query === '(display-mode: standalone)' });
   assert.equal(context.isStandalone(), true);
+});
+
+test('worker installation reloads every precache request and stores successful responses', async () => {
+  assert.match(worker, /cache:\s*'reload'/);
+  assert.doesNotMatch(worker, /\baddAll\s*\(/);
+  const fetched = [];
+  const stored = [];
+  const response = { ok: true };
+  const { handlers } = workerContext({ put: async (...args) => { stored.push(args); } }, async request => {
+    fetched.push(request);
+    return response;
+  });
+  let installation;
+  handlers.install({ waitUntil: promise => { installation = promise; } });
+  await installation;
+  assert.equal(fetched.length, files.length);
+  assert.deepEqual(fetched.map(request => request.url),
+    files.map(file => new URL(file, 'https://example.test/macro-diary/').href));
+  for (const request of fetched) assert.equal(request.cache, 'reload');
+  assert.equal(stored.length, files.length);
+  for (const [request, cached] of stored) {
+    assert.ok(fetched.includes(request));
+    assert.equal(cached, response);
+  }
+});
+
+test('worker installation rejects an unsuccessful response and does not cache it', async () => {
+  const stored = [];
+  const { handlers } = workerContext({ put: async request => { stored.push(request.url); } },
+    async request => ({ ok: !request.url.endsWith('/index.html') }));
+  let installation;
+  handlers.install({ waitUntil: promise => { installation = promise; } });
+  await assert.rejects(installation, /Precache failed: .\/index.html/);
+  assert.ok(!stored.some(url => url.endsWith('/index.html')));
 });

@@ -237,3 +237,12 @@ test('initial load failures resolve as readable errors', async () => {
   assert.deepEqual(await app.init(), { ok: false, error: 'Cannot read diary' });
   assert.equal(app.getState().ready, false);
 });
+
+test('backup file name uses local today while exportedAt keeps the UTC timestamp', async () => {
+  const { app } = await seeded();
+  const timestamp = '2026-10-30T20:00:00.000Z';
+  const result = app.actions.exportBackup(timestamp);
+  assert.equal(result.ok, true);
+  assert.equal(result.fileName, 'macro-diary-2026-10-31.json');
+  assert.equal(JSON.parse(result.text).exportedAt, timestamp);
+});

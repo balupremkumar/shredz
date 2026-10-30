@@ -208,7 +208,7 @@ test('invalid batches and replacements leave all existing records intact', async
   assert.deepEqual(await store.loadAll(), original);
 });
 
-test('replaceAll clears every store before rewriting all four record types', async () => {
+test('replaceAll replaces all four record types and removes obsolete keys', async () => {
   const backend = createMemoryBackend();
   const store = createStore(backend);
   await store.replaceAll(makeData());
@@ -227,4 +227,27 @@ test('replaceAll clears every store before rewriting all four record types', asy
   assert.deepEqual(await backend.getAll('settings'), [{ key: 'settings', ...expected.settings }]);
   await store.replaceAll({ foods: [], entries: [], weights: [], settings: makeSettings() });
   assert.deepEqual(await store.loadAll(), { foods: [], entries: [], weights: [], settings: makeSettings() });
+});
+
+test('failed memory replacement preserves every old store after staging earlier records', async () => {
+  const backend = createMemoryBackend();
+  const store = createStore(backend);
+  const previous = makeData();
+  await store.replaceAll(previous);
+  const replace = backend.replaceAll.bind(backend);
+  let calls = 0;
+  backend.replaceAll = async replacement => {
+    calls++;
+    // Fail a later put after new foods and entries have been staged.
+    replacement.weights.push({ kg: 75 });
+    await replace(replacement);
+  };
+  backend.clear = async () => assert.fail('must not clear outside replacement');
+  backend.putMany = async () => assert.fail('must not put outside replacement');
+  const incoming = makeData();
+  incoming.foods[0].name = 'Changed';
+  incoming.entries[0].qty = 90;
+  await assert.rejects(store.replaceAll(incoming), /Record needs a key/);
+  assert.equal(calls, 1);
+  assert.deepEqual(await store.loadAll(), previous);
 });

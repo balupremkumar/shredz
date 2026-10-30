@@ -197,3 +197,63 @@ test('backup module imports nothing', () => {
   const source = readFileSync(new URL('../src/backup.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /\bimport\s*(?:[({*'"\w])/);
 });
+
+for (const [collection, field, value, message] of [
+  ['entries', 'date', '2026-99-99', 'must be a valid YYYY-MM-DD date'],
+  ['entries', 'date', '2026-02-29', 'must be a valid YYYY-MM-DD date'],
+  ['entries', 'meal', 0, 'must be an integer at least 1'],
+  ['entries', 'meal', 100, 'must be at most 99'],
+  ['foods', 'name', 'a'.repeat(201), 'must contain at most 200 characters after trimming'],
+  ['foods', 'aliases', Array(51).fill('a'), 'must contain at most 50 aliases'],
+  ['foods', 'aliases', ['a'.repeat(101)], 'must contain at most 100 characters each'],
+  ...['kcal', 'protein', 'carbs', 'fat', 'baseQty', 'defaultQty'].map(field =>
+    ['foods', field, 1e7, 'must be at most 1000000']),
+  ['entries', 'qty', 1e7, 'must be at most 1000000'],
+  ['foods', 'id', '  ', 'must not be blank'],
+  ['entries', 'id', '', 'must not be blank'],
+]) {
+  test(`backup rejects ${collection}.${field} beyond its allowed limit (${JSON.stringify(value)})`, () => {
+    const data = fixture();
+    data[collection][0][field] = value;
+    rejects(encode(data), `${collection}[0]: ${field} ${message}`);
+  });
+}
+
+test('backup rejects duplicate food ids, entry ids and weight dates with record paths', () => {
+  for (const [collection, field] of [['foods', 'id'], ['entries', 'id'], ['weights', 'date']]) {
+    const data = fixture();
+    data[collection][1][field] = data[collection][0][field];
+    rejects(encode(data), `${collection}[1]: ${field} must be unique within the file`);
+  }
+});
+
+test('backup caps every record array at 20000', () => {
+  for (const collection of ['foods', 'entries', 'weights']) {
+    const data = fixture();
+    data[collection] = Array(20001).fill(data[collection][0]);
+    rejects(encode(data), `${collection}: must contain at most 20000 records`);
+  }
+});
+
+test('backup trims food names and drops extra fields from every record and goals', () => {
+  const expected = fixture();
+  const data = fixture();
+  data.foods[0].name = '  Chicken breast  ';
+  for (const collection of ['foods', 'entries', 'weights']) data[collection][0].extra = 'discard';
+  data.settings.extra = 'discard';
+  data.settings.goals.extra = 'discard';
+  assert.deepEqual(parseBackup(encode(data)), expected);
+});
+
+test('backup accepts limits inclusively and valid leap days', () => {
+  const data = fixture();
+  Object.assign(data.foods[0], { name: 'a'.repeat(200), aliases: Array(50).fill('a'.repeat(100)),
+    baseQty: 1e6, defaultQty: 1e6, kcal: 1e6, protein: 1e6, carbs: 1e6, fat: 1e6 });
+  Object.assign(data.entries[0], { date: '2024-02-29', meal: 99, qty: 1e6 });
+  assert.deepEqual(parseBackup(encode(data)), data);
+  for (const field of ['kcal', 'protein', 'carbs', 'fat']) {
+    const invalid = fixture();
+    invalid.settings.goals[field] = 1e7;
+    rejects(encode(invalid), `settings.goals: ${field} must be at most 1000000`);
+  }
+});

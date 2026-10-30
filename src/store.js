@@ -13,7 +13,7 @@ function keyPath(storeName) {
 }
 
 export function createMemoryBackend() {
-  const stores = Object.fromEntries(Object.keys(keyPaths).map(name => [name, new Map()]));
+  let stores = Object.fromEntries(Object.keys(keyPaths).map(name => [name, new Map()]));
   function store(name) {
     keyPath(name);
     return stores[name];
@@ -31,6 +31,18 @@ export function createMemoryBackend() {
     },
     async remove(name, key) { store(name).delete(key); },
     async clear(name) { store(name).clear(); },
+    async replaceAll(replacement) {
+      const next = {};
+      for (const [name, path] of Object.entries(keyPaths)) {
+        const target = new Map();
+        for (const record of structuredClone(replacement[name])) {
+          if (record[path] == null) throw new TypeError('Record needs a key');
+          target.set(record[path], record);
+        }
+        next[name] = target;
+      }
+      stores = next;
+    },
   };
 }
 
@@ -109,6 +121,27 @@ export function createIdbBackend(indexedDB = globalThis.indexedDB) {
     },
     async clear(name) {
       await run(name, 'readwrite', (store, track) => track(store.clear()));
+    },
+    async replaceAll(replacement) {
+      const db = await open();
+      const transaction = db.transaction(Object.keys(keyPaths), 'readwrite');
+      const completed = new Promise((resolve, reject) => {
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error('IndexedDB transaction failed'));
+        transaction.onabort = () => reject(transaction.error || new Error('IndexedDB transaction aborted'));
+      });
+      try {
+        for (const name of Object.keys(keyPaths)) {
+          const store = transaction.objectStore(name);
+          store.clear();
+          for (const record of replacement[name]) store.put(record);
+        }
+      } catch (error) {
+        transaction.abort();
+        await Promise.allSettled([completed]);
+        throw error;
+      }
+      await completed;
     },
   };
 }
@@ -217,8 +250,7 @@ export function createStore(backend) {
         weights: data.weights.map(weight),
         settings: [{ ...settings(data.settings), key: 'settings' }],
       };
-      for (const name of Object.keys(keyPaths)) await backend.clear(name);
-      for (const [name, records] of Object.entries(replacement)) await backend.putMany(name, records);
+      await backend.replaceAll(replacement);
     },
   };
 }
