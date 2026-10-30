@@ -47,3 +47,23 @@ After the first open it works with no signal (airplane mode).
 2. Then T7 and T8 (shell and styles), then T9 to T13 in two waves of up to 3 Codex jobs each.
 3. T14 and T15, then T16 to T19 (Opus tests, Sonnet review), fixes go back to Codex as resumes or new jobs.
 4. T20 to T22 after Balu's yes to push.
+
+## v1.1 quality of life (Balu's picks, 31 Oct 2026, awaiting green light)
+
+| # | Feature | What it does | Builder | Done when |
+|---|---|---|---|---|
+| Q1 | Saved meals | "Save as saved meal" from any meal; saved meals listed at the top of Add food; one tap adds every item | Codex Sol | E2E: save, reuse on another day |
+| Q2 | Say saved meal names | Dictation "Meal one, usual breakfast. Save." logs the whole saved meal (parser matches saved meal names like foods) | Codex Sol | parser tests plus E2E |
+| Q3 | Recent foods first | Add food lists the most-used foods of the last 30 days first, then the rest A to Z | Codex Sol | E2E order check |
+| Q4 | Quantity +/- buttons | Minus and plus on each diary item; step 1 for items and scoops, 25 g or 50 ml for weights and volumes | Codex Sol | E2E totals update |
+| Q5 | Learns your words | On Confirm, a not-recognised word gets "This is..." to pick the food; the word is saved as another name for it | Codex Sol | E2E: next dictation matches |
+| Q6 | 7-day average line | Smoothed trend line under the daily points on the weight chart | Codex Sol | unit test of the average, screenshot |
+| Q7 | Weigh-in badge | Home-screen icon badge while today's weight is missing (Badging API, installed app only; set on open, cleared on log) | Codex Sol | unit test of the rule, live on phone |
+| Q8 | Weekly report | Settings or Weight: average kcal, protein, carbs, fat and weight change over 7 and 30 days | Codex Sol | unit tests plus screenshot |
+| Q9 | Goal modes | Switch between calories plus % split (must total 100, grams worked out) and grams per macro (calories worked out at 4/4/9) | Codex Sol | unit tests plus E2E |
+| Q10 | CSV export | Settings: export days (date, meal, food, qty, kcal, P, C, F) and weights as CSV via the share sheet | Codex Sol | unit test of CSV, E2E download |
+| Q11 | Swipe to delete | Swipe a diary item left to reveal Delete | Codex Sol | E2E touch swipe |
+| Q12 | Copy day to any date | From any day: "Copy this day to..." with a date picker (today preselected) | Codex Sol | E2E |
+| Q13 | Larger text | Settings toggle that scales type about 15 percent, remembered on the phone | Codex Sol | screenshot at 375 px, no sideways scroll |
+
+Foods: Balu's 13 foods are ready in `private/macro-diary-foods.json` (git-ignored, never published); import with Settings, Import backup, Merge.
