@@ -3,14 +3,13 @@ Vault: [[HOME]] | [[projects/active/macro-diary/PLAN|Plan]] | [[PORTFOLIO|Portfo
 # STATE: Macro Diary
 
 ## Current state
-Feature complete on branch `build` (31 Oct 2026); main holds the scaffold only. Not pushed, no GitHub repo yet.
-Built by Codex Sol (14 jobs), reviewed and E2E-tested by Opus; polish fixes by Opus. Unit `npm test` 92 green; E2E `cd e2e; npx playwright test` 23 green (WebKit, iPhone 15).
-Sonnet review 31 Oct: 1 high (non-atomic import), fixes running as Codex job `md-review-fix`.
+Feature complete and reviewed on branch `build` (31 Oct 2026); main holds the scaffold only. Not pushed, no GitHub repo yet.
+Built by Codex Sol (15 jobs), reviewed and E2E-tested by Opus, Sonnet review findings fixed. Unit `npm test` 116 green; E2E `cd e2e; npx playwright test` 23 green (WebKit, iPhone 15).
+Publishing is ON HOLD until Balu is home (his answer 31 Oct: "will publish when home, hold").
 Install target: https://balupremkumar.github.io/macro-diary/ (QR in icons/install-qr.png, steps in README).
 
 ## Next steps
-- RESUME HERE: merge `md-review-fix` after reading its diff, rerun unit + E2E.
-- Ask Balu's yes to: create public repo balupremkumar/macro-diary, push, enable Pages, merge build to main (T20). Then E2E against live URL with MD_BASE_URL (T21), then Balu installs (T22).
+- RESUME HERE when Balu says go: `gh repo create balupremkumar/macro-diary --public --source . --push` from the project folder, merge build to main, enable Pages on main (root), then `cd e2e; $env:MD_BASE_URL='https://balupremkumar.github.io/macro-diary/'; npx playwright test` (T20, T21), then guide his install (T22).
 - Later: Balu's own food list (T23) via Settings, Import backup (foods-only JSON).
 
 ## Open bugs
