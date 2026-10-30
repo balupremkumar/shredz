@@ -17,6 +17,7 @@ import * as foods from './ui/foods.js';
 import * as weight from './ui/weight.js';
 import * as settings from './ui/settings.js';
 import * as dictate from './ui/dictate.js';
+import { registerServiceWorker } from './pwa.js';
 
 const screens = { diary, foods, weight, settings };
 const titles = { diary: 'Diary', foods: 'Foods', weight: 'Weight', settings: 'Settings' };
@@ -120,3 +121,4 @@ async function boot() {
 }
 
 boot();
+registerServiceWorker();
