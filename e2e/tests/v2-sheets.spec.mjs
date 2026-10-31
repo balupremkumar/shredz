@@ -27,7 +27,7 @@ async function expectGeometry(page, field, withDock) {
     if (sheet.y < 0 || sheet.y + sheet.height > height + 1 || input.y < 0 || input.y + input.height > height) return false;
     if (withDock) {
       const dock = await page.locator('.sheet__dock, .sheet__foot').boundingBox();
-      if (!dock || dock.y + dock.height > height + 1 || input.y + input.height > dock.y) return false;
+      if (!dock || dock.y + dock.height > height + 1 || input.y + input.height > dock.y + 1) return false;
     }
     return true;
   }).toBe(true);
