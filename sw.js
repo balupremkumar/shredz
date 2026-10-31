@@ -18,6 +18,7 @@ const FILES = [
   './src/insights.js',
   './src/parser.js',
   './src/pwa.js',
+  './src/sheet-geometry.js',
   './src/store.js',
   './src/version.js',
   './src/ui/diary.js',
