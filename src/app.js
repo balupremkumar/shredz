@@ -18,6 +18,7 @@ import * as foods from './ui/foods.js';
 import * as weight from './ui/weight.js';
 import * as settings from './ui/settings.js';
 import * as dictate from './ui/dictate.js';
+import * as welcome from './ui/welcome.js';
 import { registerServiceWorker } from './pwa.js';
 
 const screens = { diary, foods, weight, settings };
@@ -170,6 +171,7 @@ async function boot() {
       // A sheet may focus its own field (the dictate box must, so iOS raises the keyboard).
       if (!panel.contains(document.activeElement)) panel.focus();
     }
+    if (welcome.isActive(state)) welcome.render(sheetRoot, app);
   }
 
   controller.subscribe(render);
