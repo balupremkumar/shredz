@@ -1,175 +1,305 @@
-import { h, clear } from './dom.js';
-import { dayLabel, localDate, formatKcal, formatGrams, formatQty } from '../format.js';
+import { h, clear, icon } from './dom.js';
+import { formatKcal, formatGrams, formatQty } from '../format.js';
+
+export function pickRecogniserConstructor(scope) {
+  return scope.SpeechRecognition || scope.webkitSpeechRecognition || null;
+}
+
+export function createSpeechSession({ recogniser, onTranscript = () => {}, onState = () => {} }) {
+  let state = 'idle';
+  let final = '';
+  let interim = '';
+  let restarts = 0;
+  const change = next => { state = next; onState(state); };
+  function launch() {
+    if (state !== 'listening') return;
+    try { recogniser.start(); }
+    catch (error) {
+      change(['not-allowed', 'service-not-allowed', 'NotAllowedError'].includes(error.error || error.name) ? 'denied' : 'error');
+    }
+  }
+  if (recogniser) {
+    recogniser.onresult = event => {
+      if (state !== 'listening') return;
+      restarts = 0;
+      const committed = [];
+      const pending = [];
+      for (let i = event.resultIndex || 0; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        (result.isFinal ? committed : pending).push(result[0].transcript.trim());
+      }
+      final = [final, ...committed].filter(Boolean).join(' ');
+      interim = pending.filter(Boolean).join(' ');
+      onTranscript({ final, interim });
+    };
+    recogniser.onend = () => {
+      if (state !== 'listening') return;
+      if (restarts >= 20) { change('error'); return; }
+      restarts += 1;
+      onState(state);
+      launch();
+    };
+    recogniser.onerror = event => {
+      if (state !== 'listening') return;
+      if (['not-allowed', 'service-not-allowed'].includes(event.error)) change('denied');
+      else if (!['no-speech', 'aborted'].includes(event.error)) change('error');
+    };
+  }
+  return {
+    get state() { return state; },
+    get restarts() { return restarts; },
+    start() {
+      if (state === 'listening') return;
+      if (!recogniser) { change('unsupported'); return; }
+      recogniser.lang = 'en-NZ';
+      recogniser.interimResults = true;
+      recogniser.continuous = true;
+      restarts = 0;
+      change('listening');
+      launch();
+    },
+    stop() {
+      const wasListening = state === 'listening';
+      change('stopped');
+      if (recogniser && wasListening) {
+        try { recogniser.stop(); } catch { /* Already ended on the phone. */ }
+      }
+    },
+    reset() { final = ''; interim = ''; onTranscript({ final, interim }); },
+  };
+}
+
+const leading = /^(?:(?:\d+(?:[.,]\d+)*|one|two|three|four|five|six|seven|eight|nine|ten|half|a|an|couple|of|servings?|serves?|grams?|g|kilograms?|kg|millilitres?|milliliters?|mils?|ml|litres?|liters?|l|items?|scoops?|slices?|pieces?)\b[\s\p{P}]*)+/iu;
+export function foodName(raw) {
+  return String(raw).replace(/^[\s\p{P}]+|[\s\p{P}]+$/gu, '').replace(leading, '').trim();
+}
+export function isFoodName(raw) { return foodName(raw) !== ''; }
 
 let draft = '';
 let suppliedText;
+let mealOverride;
+let session;
+let recogniser;
+let transcript = { final: '', interim: '' };
+let typing = false;
+let speechBase = '';
+let reason = '';
+let boundPanel;
+let refresh;
+let focusView;
+let visibilityBound = false;
+let saving = false;
+const removed = new Set();
 
 function button(text, className, click) {
   return h('button', { class: className, text, attrs: { type: 'button' }, on: { click } });
 }
-
 async function open(app, name, props) {
+  session?.stop();
   const result = await app.actions.openSheet(name, props);
   if (!result.ok) app.toast(result.error);
 }
-
-function head(title, cancel) {
-  return h('div', { class: 'sheet__head' },
-    h('h2', { text: title }), button('Cancel', 'link-btn', cancel));
+function clearDraft() {
+  draft = ''; suppliedText = undefined; mealOverride = undefined;
+  transcript = { final: '', interim: '' }; removed.clear();
+  session?.stop(); session = undefined; recogniser = undefined;
 }
-
-function hasItems(preview) {
-  return preview.meals.some(meal => meal.items.length > 0);
-}
-
 function dictate(root, app, props = {}) {
-  // A retained text prop must not overwrite edits on a shell re-render.
   if (props.text !== undefined && props.text !== suppliedText) {
-    draft = props.text;
-    suppliedText = props.text;
+    draft = props.text; suppliedText = props.text;
+    transcript = { final: '', interim: '' };
+    speechBase = draft;
+    session?.reset();
   }
-  const live = h('div', { attrs: { 'aria-live': 'polite', 'aria-atomic': 'true' } });
-  const save = button('Save', 'pill pill--primary pill--block', () => open(app, 'confirm', { text: draft }));
-  function updateLive(preview) {
-    clear(live);
-    for (const line of preview.lines) {
-      live.appendChild(h('div', { class: 'live-line' },
-        h('span', { text: `Meal ${line.meal}` }),
-        h('span', { text: `${line.count} ${line.count === 1 ? 'item' : 'items'}` }),
-        h('span', { text: `${formatKcal(line.kcal)} kcal` })));
-    }
-    if (preview.unmatched.length) {
-      live.appendChild(h('p', { class: 'problem-line',
-        text: `${preview.unmatched.length} not recognised: ${preview.unmatched.map(item => item.raw).join(', ')}` }));
-    }
-    // Unrecognised words still go to Confirm, where they can be taught or added as foods.
-    save.disabled = !hasItems(preview) && !preview.unmatched.length;
-  }
-  const textarea = h('textarea', { class: 'textarea', attrs: {
-    'aria-label': 'What you ate', autocapitalize: 'sentences', autocorrect: 'off', spellcheck: 'false',
-  }, on: { input: () => {
-    draft = textarea.value;
-    const preview = app.select.preview(draft);
-    updateLive(preview);
-    if (preview.save) open(app, 'confirm', { text: draft });
-  } } });
-  textarea.value = draft;
-  updateLive(app.select.preview(draft));
-  root.appendChild(head('Dictate', async () => {
-    draft = '';
-    suppliedText = undefined;
-    const result = await app.actions.closeSheet();
-    if (!result.ok) app.toast(result.error);
-  }));
-  root.appendChild(h('div', { class: 'sheet__body' },
-    h('p', { class: 'muted', text: 'Tap the mic on your keyboard and say: meal one, 2 Weet-Bix, green milk 200 mils... then say save.' }),
-    textarea, live));
-  root.appendChild(h('div', { class: 'sheet__foot' }, save));
-  textarea.focus();
-  textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-}
-
-function foodName(raw) {
-  return raw.replace(/^(?:(?:\d+(?:[.,]\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|half|a|an|grams?|g|kilograms?|kg|millilitres?|milliliters?|mils?|ml|litres?|liters?|l|items?|scoops?|of)\b[\s,.]*)+/i, '').trim();
-}
-
-function confirm(root, app, props = {}) {
-  const text = props.text ?? draft;
-  draft = text;
-  suppliedText = text;
-  const preview = app.select.preview(text);
-  const foods = new Map(app.select.foods().map(food => [food.id, food]));
-  const savedNames = new Map(app.select.savedMeals().map(saved => [saved.id, saved.name]));
-  const edit = () => open(app, 'dictate', { text });
+  // Rebind before any event: the shell replaces the panel on every state change.
+  boundPanel = root;
+  const Constructor = typeof window === 'undefined' ? null : pickRecogniserConstructor(window);
+  const head = h('div', { class: 'sheet__head' });
   const body = h('div', { class: 'sheet__body' });
-  for (const meal of preview.meals) {
-    const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
-    const rows = meal.items.map(item => {
-      const food = foods.get(item.foodId);
-      const nutrition = {};
-      for (const key of Object.keys(totals)) {
-        nutrition[key] = food[key] * item.qty / food.baseQty;
-        totals[key] += nutrition[key];
-      }
-      return h('div', { class: 'row' },
-        h('div', { class: 'row__body' },
-          h('div', { class: 'row__name', text: food.name }),
-          h('span', { class: 'row__qty', text: formatQty(item.qty, food.unit)
-            + (item.savedMealId && savedNames.has(item.savedMealId) ? ` from ${savedNames.get(item.savedMealId)}` : '') })),
-        h('span', { class: 'row__kcal', text: `${formatKcal(nutrition.kcal)} kcal` }));
-    });
-    body.appendChild(h('section', { class: 'section' },
-      h('div', { class: 'section__head' }, h('h3', { text: `Meal ${meal.meal}` }),
-        h('span', { text: `${formatKcal(totals.kcal)} kcal` })),
-      h('p', { class: 'section__sub', text: `Protein ${formatGrams(totals.protein)}, carbs ${formatGrams(totals.carbs)}, fat ${formatGrams(totals.fat)}` }),
-      rows));
+  const dock = h('div', { class: 'sheet__dock' });
+  root.appendChild(head); root.appendChild(body); root.appendChild(dock);
+  let preview;
+  let saveButton;
+  let textarea;
+  let prefix = draft;
+  let autoSaveText;
+
+  let rendering = false;
+  function focusText() {
+    textarea?.focus();
+    textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
   }
-  for (const item of preview.unmatched) {
+  async function save() {
+    if (saving || !preview.meals.some(meal => meal.items.length)) return;
+    saving = true; saveButton.disabled = true;
+    session?.stop();
+    const result = await app.actions.addParsed(app.state.date, preview);
+    if (!result.ok) {
+      saving = false; saveButton.disabled = false; app.toast(result.error); return;
+    }
+    clearDraft();
+    const closed = await app.actions.closeSheet();
+    saving = false;
+    if (!closed.ok) app.toast(closed.error);
+    app.toast(`Added ${result.added} items, ${formatKcal(result.kcal)} kcal`);
+  }
+  function problem(item, section) {
+    const key = `${item.meal}:${item.raw}`;
+    if (removed.has(key)) return;
     const word = foodName(item.raw);
     const row = h('div', { class: 'row row--problem' });
     const error = h('p', { class: 'problem-line' });
     error.hidden = true;
-    function showActions() {
+    function actions() {
       clear(row);
       row.appendChild(h('div', { class: 'row__body' },
         h('div', { class: 'row__name', text: `Not recognised: ${item.raw}` }),
-        button('Add as food', 'link-btn', () => open(app, 'food-edit', {
-          name: word, returnTo: { name: 'confirm', props: { text } },
-        })),
-        button('This is...', 'link-btn', showPicker),
-        button('Remove', 'link-btn', () => { row.hidden = true; error.hidden = true; })));
+        word ? [button('Add', 'link-btn', () => open(app, 'food-edit', {
+          name: word, returnTo: { name: 'dictate', props: { text: draft } },
+        })), button('This is...', 'link-btn', picker)] : h('p', { class: 'muted', text: 'Not a food name' }),
+        button('Remove', 'link-btn', () => { removed.add(key); row.hidden = true; error.hidden = true; })));
     }
-    function showPicker() {
+    function picker() {
       clear(row);
       const select = h('select', { class: 'select', attrs: { 'aria-label': `Which food is ${word}?` } },
         h('option', { text: '', attrs: { value: '' } }),
         app.select.recentFoods().map(food => h('option', { text: food.name, attrs: { value: food.id } })));
-      row.appendChild(h('div', { class: 'row__body' },
-        select,
+      row.appendChild(h('div', { class: 'row__body' }, select,
         button('Learn', 'pill pill--primary', async () => {
-          if (!select.value) {
-            error.textContent = 'Pick a food first';
-            error.hidden = false;
-            return;
-          }
-          const food = select.options[select.selectedIndex].textContent;
+          if (!select.value) { error.textContent = 'Pick a food first'; error.hidden = false; return; }
           const result = await app.actions.addAlias(select.value, word);
-          if (!result.ok) {
-            error.textContent = result.error;
-            error.hidden = false;
-            return;
-          }
-          app.toast(`Learned ${word} as ${food}`);
-        }),
-        button('Cancel', 'link-btn', () => { error.hidden = true; showActions(); })));
+          if (!result.ok) { error.textContent = result.error; error.hidden = false; return; }
+          app.toast(`Learned ${word} as ${result.food.name}`);
+          refresh?.();
+        }), button('Cancel', 'link-btn', () => { error.hidden = true; actions(); })));
     }
-    showActions();
-    body.appendChild(row);
-    body.appendChild(error);
+    actions(); section.appendChild(row); section.appendChild(error);
   }
-  for (const warning of preview.warnings) {
-    body.appendChild(h('p', { class: 'problem-line', text: warning.message }));
-  }
-  const add = button(`Add ${formatKcal(preview.kcal)} kcal to ${dayLabel(app.state.date, localDate())}`,
-    'pill pill--primary pill--block', async () => {
-      if (add.disabled) return;
-      add.disabled = true;
-      const result = await app.actions.addParsed(app.state.date, preview);
-      if (!result.ok) {
-        add.disabled = !hasItems(preview);
-        app.toast(result.error);
-        return;
+  function render() {
+    if (rendering) return;
+    rendering = true;
+    const hadFocus = textarea && typeof document !== 'undefined' && document.activeElement === textarea;
+    prefix = mealOverride && !/^\s*meal\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b/i.test(draft)
+      ? `meal ${mealOverride}, ${draft}` : draft;
+    preview = app.select.preview(prefix);
+    const count = preview.meals.reduce((sum, meal) => sum + meal.items.length, 0);
+    const meal = mealOverride || preview.meals[0]?.meal || preview.lines?.[0]?.meal || 1;
+    clear(head); clear(body); clear(dock);
+    head.appendChild(button('Cancel', 'link-btn', async () => {
+      clearDraft();
+      const result = await app.actions.closeSheet();
+      if (!result.ok) app.toast(result.error);
+    }));
+    head.appendChild(h('h2', { text: `Meal ${meal}` }));
+    const next = button(`Meal ${meal + 1} \u203a`, 'link-btn', () => { mealOverride = meal + 1; render(); });
+    next.setAttribute('style', 'min-height:44px'); head.appendChild(next);
+    if (typing) {
+      if (reason) body.appendChild(h('p', { class: 'muted', text: reason }));
+      textarea = textarea || h('textarea', { class: 'textarea', attrs: {
+        'aria-label': 'What you ate', autocapitalize: 'sentences', autocorrect: 'off', spellcheck: 'false',
+        autocomplete: 'off', enterkeyhint: 'enter',
+      }, on: { input: () => { draft = textarea.value; transcript = { final: '', interim: '' }; render(); } } });
+      textarea.value = draft; body.appendChild(textarea);
+      body.appendChild(h('p', { class: 'muted', text: 'Tap the mic on your keyboard and say: meal one, 2 Weet-Bix, green milk 200 mils... then say save.' }));
+    } else {
+      textarea = undefined;
+      const listening = session?.state === 'listening';
+      const mic = button('', 'speak-mic', () => {
+        if (session.state === 'listening') session.stop();
+        else session.start();
+      });
+      mic.setAttribute('aria-label', listening ? 'Tap to stop' : 'Tap to talk again');
+      mic.setAttribute('style', 'width:88px;height:88px;border-radius:50%;background:var(--accent)');
+      mic.appendChild(icon('mic')); body.appendChild(mic);
+      body.appendChild(h('p', { text: listening ? 'Listening. Tap to stop.' : 'Tap to talk again' }));
+      body.appendChild(h('p', { attrs: { 'aria-live': 'polite' } },
+        h('span', { text: [speechBase, transcript.final].filter(Boolean).join(' ') }),
+        h('span', { text: transcript.interim ? ` ${transcript.interim}` : '', attrs: { style: 'color:var(--muted);font-style:italic' } })));
+      if (!draft && session?.restarts >= 2) body.appendChild(h('p', { class: 'muted', text: "Didn't catch that, try again" }));
+    }
+    if (draft.trim()) {
+      const section = h('section', { class: 'section' }, h('div', { class: 'section__head' },
+        h('h3', { text: 'I heard' }), h('span', { text: `${formatKcal(preview.kcal)} kcal` })));
+      const foods = new Map(app.select.foods().map(food => [food.id, food]));
+      const saved = new Map(app.select.savedMeals().map(meal => [meal.id, meal.name]));
+      for (const group of preview.meals) {
+        if (preview.meals.length > 1) section.appendChild(h('p', { class: 'section__sub', text: `Meal ${group.meal}` }));
+        for (const item of group.items) {
+          const food = foods.get(item.foodId);
+          section.appendChild(h('div', { class: 'row' }, h('div', { class: 'row__body' },
+            h('div', { class: 'row__name', text: food.name }),
+            h('span', { class: 'row__qty', text: formatQty(item.qty, food.unit) + (saved.has(item.savedMealId) ? ` from ${saved.get(item.savedMealId)}` : '') }),
+            h('div', { class: 'muted', text: `${formatGrams(food.protein * item.qty / food.baseQty)} protein` })),
+          h('span', { class: 'row__kcal', text: `${formatKcal(food.kcal * item.qty / food.baseQty)} kcal` })));
+        }
       }
-      draft = '';
-      suppliedText = undefined;
-      const closed = await app.actions.closeSheet();
-      if (!closed.ok) app.toast(closed.error);
-      app.toast(`Added ${result.added} items, ${formatKcal(result.kcal)} kcal`);
+      for (const item of preview.unmatched) problem(item, section);
+      body.appendChild(section);
+    }
+    for (const warning of preview.warnings) body.appendChild(h('p', { class: 'problem-line', text: warning.message }));
+    if (preview.save && !count) body.appendChild(h('p', { class: 'muted', text: 'Nothing to save yet' }));
+    body.appendChild(h('p', { class: 'muted', text: 'Say "meal two" to switch meals, "save" to finish.' }));
+    if (!typing || Constructor) dock.appendChild(button(typing ? 'Use the mic' : 'Type instead', 'link-btn', () => {
+      if (!typing) { typing = true; session?.stop(); render(); focusText(); }
+      else { typing = false; reason = ''; speechBase = draft; session.reset(); session.start(); render(); }
+    }));
+    saveButton = button(`Save ${count} ${count === 1 ? 'item' : 'items'}`, 'pill pill--primary', save);
+    saveButton.disabled = saving || !count; dock.appendChild(saveButton);
+    rendering = false;
+    if (hadFocus) focusText();
+    if (preview.save && count && autoSaveText !== draft) { autoSaveText = draft; void save(); }
+  }
+  refresh = render;
+  focusView = focusText;
+  if (!session) {
+    speechBase = draft;
+    transcript = { final: '', interim: '' };
+    typing = !Constructor;
+    reason = Constructor ? '' : 'Speech needs a newer iPhone setting here, so use the mic on your keyboard.';
+    if (Constructor) {
+      try { recogniser = new Constructor(); }
+      catch { typing = true; reason = 'Speech needs a newer iPhone setting here, so use the mic on your keyboard.'; }
+    }
+    session = createSpeechSession({ recogniser,
+      onTranscript: text => {
+        transcript = text;
+        draft = [speechBase, text.final, text.interim].filter(Boolean).join(' ');
+        refresh?.();
+      },
+      onState: state => {
+        if (state === 'denied' || state === 'error') {
+          typing = true;
+          reason = state === 'denied' ? 'Microphone is off for Shredz, so use the mic on your keyboard.'
+            : 'Speech stopped here, so use the mic on your keyboard.';
+        }
+        refresh?.();
+        if (typing) focusView?.();
+      },
     });
-  add.disabled = !hasItems(preview);
-  root.appendChild(head('Confirm', edit));
-  root.appendChild(body);
-  root.appendChild(h('div', { class: 'sheet__foot' }, add, button('Edit text', 'link-btn', edit)));
+    if (recogniser) {
+      const current = session;
+      for (const name of ['onresult', 'onend', 'onerror']) {
+        const handler = recogniser[name];
+        recogniser[name] = event => {
+          if (current !== session) return;
+          if (boundPanel?.isConnected === false) {
+            current.stop(); session = undefined; recogniser = undefined; return;
+          }
+          handler(event);
+        };
+      }
+    }
+    if (!typing) session.start();
+  }
+  if (!visibilityBound && typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') session?.stop();
+    });
+    visibilityBound = true;
+  }
+  render();
+  if (typing) focusText();
 }
 
+const confirm = (root, app, props) => dictate(root, app, props);
 export const sheets = { dictate, confirm };
