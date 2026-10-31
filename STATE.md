@@ -3,7 +3,7 @@ Vault: [[HOME]] | [[projects/active/macro-diary/PLAN|Plan]] | [[PORTFOLIO|Portfo
 # STATE: Macro Diary
 
 ## Current state
-LIVE 31 Oct 2026: https://balupremkumar.github.io/shredz/ (public repo balupremkumar/shredz, GitHub Pages from main). v0.2.0.
+LIVE 31 Oct 2026: https://balupremkumar.github.io/shredz/ (public repo balupremkumar/shredz, GitHub Pages from main). v2.0.0 pushed 31 Oct, 57 E2E green against live.
 E2E against the live site: 32 green (WebKit, iPhone 15). Unit 141 green. Commits use the GitHub no-reply email (history rewritten before first push; local tag pre-publish-backup holds the old history).
 Balu's 13 NZ foods: private/macro-diary-foods.json (git-ignored, never pushed); estimates to check in private/foods-research.md.
 
@@ -23,8 +23,8 @@ Balu's 13 NZ foods: private/macro-diary-foods.json (git-ignored, never pushed); 
 - Done this session: dictation corpus (tests/fixtures/dictation-corpus.json, 186 cases, baseline 111 pass / 61 fail / 14 skipped; notes in private/dictation-corpus-notes.md); nutrition re-check (private/foods-research-v2.md: rice cake 24 kcal, toast slice 90/3.4/16.6/0.8, Scorpion whey 132/25.0/2.6/2.2, other 10 unchanged); mock at mock/v2/index.html (design suite run, critique fixes applied).
 - The "Chicken breast x 100 grams" failure does NOT reproduce from text in parser.js (text gives Weet-Bix 2 + chicken 100 g, "3 servings" dropped): reproduce in the dictate UI on WebKit first when the build starts.
 - Balu said yes to the mock (31 Oct); servings = N x defaultQty for g/ml foods; Weet-Bix 750 g box (53 kcal); Anchor Trim. Nutrition changes applied to private/macro-diary-foods.json (phone needs Settings, Import, Merge after release).
-- v2 BUILT on branch `build` as 2.0.0 (31 Oct): all V-tasks merged (parser 172/172 corpus, iOS design light/dark, goals grams-only, keyboard-safe sheets, Speak sheet, Diary ring + Speak button + quantity sheet, 3-step welcome, polish, review hardening). Unit 374 pass, E2E 57 pass locally (WebKit iPhone 15). Reviewer pass done, no open findings. NOT PUSHED: main is still 0.2.0 live.
-- Next: Balu's yes to merge build into main and push; then rerun E2E with MD_BASE_URL live; then Balu re-imports private/macro-diary-foods.json (Settings, Import, Merge) and checks on the phone: real keyboard and AutoFill bar, status bar style (index.html default), speech recognition in the home-screen app (falls back to keyboard mic if iOS blocks it).
+- v2 BUILT on branch `build` as 2.0.0 (31 Oct): all V-tasks merged (parser 172/172 corpus, iOS design light/dark, goals grams-only, keyboard-safe sheets, Speak sheet, Diary ring + Speak button + quantity sheet, 3-step welcome, polish, review hardening). Unit 374 pass, E2E 57 pass locally (WebKit iPhone 15). Reviewer pass done, no open findings. PUSHED to main 31 Oct (Balu's yes), live E2E 57/57.
+- Next: Balu re-imports private/macro-diary-foods.json (Settings, Import, Merge) and checks on the phone: real keyboard and AutoFill bar, status bar style (index.html default), speech recognition in the home-screen app (falls back to keyboard mic if iOS blocks it).
 - Codex rule (Balu, 31 Oct): use Codex as much as possible to save Claude usage; Sonnet when Codex is over its limit.
 - Releases: bump APP_VERSION in src/version.js and VERSION in sw.js together, run unit + E2E (local and MD_BASE_URL live), push main; installed phones update on next open.
 - Ideas not picked: BACKLOG.md.
