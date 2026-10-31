@@ -133,7 +133,7 @@ test('unsupported typing, item nutrition, meal prefix, save and retained props',
   try {
     e.render({ text: '' });
     assert.equal(document.activeElement, field(e.root)); assert.equal(field(e.root).getAttribute('autocomplete'), 'off');
-    assert.match(e.root.textContent, /Speech needs a newer iPhone setting/);
+    assert.match(e.root.textContent, /Voice isn't available here, so tap the mic on your keyboard and talk\./);
     assert.equal(classed(e.root, 'speak-mic').length, 0); assert.equal(find(e.root, 'Save 0 items').disabled, true);
     e.input('milk');
     assert.match(e.root.textContent, /I heard/); assert.match(e.root.textContent, /Green milk/);
