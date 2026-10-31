@@ -422,25 +422,15 @@ function editEntry(root, app, { id }) {
     head.appendChild(save);
     const control = quantityControl(entry.food, entry.qty, save, app,
       qty => app.actions.updateEntryQty(id, qty), close);
-    const amount = h('div', {}, control.input, h('span', { class: 'muted', text: entry.food.unit }));
-    amount.style.display = 'flex';
-    amount.style.alignItems = 'baseline';
-    amount.style.gap = 'var(--space-2)';
-    amount.style.marginBlock = 'var(--space-4)';
-    control.input.style.fontSize = 'calc(var(--text-hero) * 2)';
-    control.input.style.textAlign = 'center';
-    control.input.style.fontWeight = '600';
-    const quick = h('div');
-    quick.style.display = 'flex';
-    quick.style.gap = 'var(--space-2)';
+    control.input.className += ' qty-amount__input';
+    const amount = h('div', { class: 'qty-amount' }, control.input,
+      h('span', { class: 'muted qty-amount__unit', text: entry.food.unit }));
+    const quick = h('div', { class: 'qty-quick' });
     for (const qty of quickAmounts(entry.food.unit)) {
-      const pick = button(formatQty(qty, entry.food.unit), 'link-btn', () => {
+      const pick = button(formatQty(qty, entry.food.unit), 'link-btn qty-quick__btn', () => {
         control.input.value = String(qty);
         control.update();
       });
-      pick.style.flex = '1';
-      pick.style.padding = 'var(--space-2)';
-      pick.style.background = 'var(--surface-2)';
       quick.appendChild(pick);
     }
     body.appendChild(amount);

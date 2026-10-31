@@ -1,6 +1,8 @@
 import { h, clear, icon } from './dom.js';
 import { formatKcal, formatGrams, formatQty } from '../format.js';
 
+const voiceUnavailable = "Voice isn't available here, so tap the mic on your keyboard and talk.";
+
 export function pickRecogniserConstructor(scope) {
   return scope.SpeechRecognition || scope.webkitSpeechRecognition || null;
 }
@@ -192,7 +194,7 @@ function dictate(root, app, props = {}) {
     }));
     head.appendChild(h('h2', { text: `Meal ${meal}` }));
     const next = button(`Meal ${meal + 1} \u203a`, 'link-btn', () => { mealOverride = meal + 1; render(); });
-    next.setAttribute('style', 'min-height:44px'); head.appendChild(next);
+    head.appendChild(next);
     if (typing) {
       if (reason) body.appendChild(h('p', { class: 'muted', text: reason }));
       textarea = textarea || h('textarea', { class: 'textarea', attrs: {
@@ -200,7 +202,7 @@ function dictate(root, app, props = {}) {
         autocomplete: 'off', enterkeyhint: 'enter',
       }, on: { input: () => { draft = textarea.value; transcript = { final: '', interim: '' }; render(); } } });
       textarea.value = draft; body.appendChild(textarea);
-      body.appendChild(h('p', { class: 'muted', text: 'Tap the mic on your keyboard and say: meal one, 2 Weet-Bix, green milk 200 mils... then say save.' }));
+      body.appendChild(h('p', { class: 'muted', text: 'Try: meal one, 2 Weet-Bix, green milk 200 mils... then say save.' }));
     } else {
       textarea = undefined;
       const listening = session?.state === 'listening';
@@ -209,12 +211,12 @@ function dictate(root, app, props = {}) {
         else session.start();
       });
       mic.setAttribute('aria-label', listening ? 'Tap to stop' : 'Tap to talk again');
-      mic.setAttribute('style', 'width:88px;height:88px;border-radius:50%;background:var(--accent)');
-      mic.appendChild(icon('mic')); body.appendChild(mic);
-      body.appendChild(h('p', { text: listening ? 'Listening. Tap to stop.' : 'Tap to talk again' }));
-      body.appendChild(h('p', { attrs: { 'aria-live': 'polite' } },
+      mic.appendChild(icon('mic'));
+      body.appendChild(h('div', { class: 'speak-stage' }, mic,
+        h('p', { class: 'speak-status', text: listening ? 'Listening. Tap to stop.' : 'Tap to talk again' })));
+      body.appendChild(h('p', { class: 'speak-transcript', attrs: { 'aria-live': 'polite' } },
         h('span', { text: [speechBase, transcript.final].filter(Boolean).join(' ') }),
-        h('span', { text: transcript.interim ? ` ${transcript.interim}` : '', attrs: { style: 'color:var(--muted);font-style:italic' } })));
+        h('span', { class: 'speak-transcript__interim', text: transcript.interim ? ` ${transcript.interim}` : '' })));
       if (!draft && session?.restarts >= 2) body.appendChild(h('p', { class: 'muted', text: "Didn't catch that, try again" }));
     }
     if (draft.trim()) {
@@ -228,8 +230,7 @@ function dictate(root, app, props = {}) {
           const food = foods.get(item.foodId);
           section.appendChild(h('div', { class: 'row' }, h('div', { class: 'row__body' },
             h('div', { class: 'row__name', text: food.name }),
-            h('span', { class: 'row__qty', text: formatQty(item.qty, food.unit) + (saved.has(item.savedMealId) ? ` from ${saved.get(item.savedMealId)}` : '') }),
-            h('div', { class: 'muted', text: `${formatGrams(food.protein * item.qty / food.baseQty)} protein` })),
+            h('span', { class: 'row__qty speak-subtitle', text: formatQty(item.qty, food.unit) + (saved.has(item.savedMealId) ? ` from ${saved.get(item.savedMealId)}` : '') + ` · ${formatGrams(food.protein * item.qty / food.baseQty)} protein` })),
           h('span', { class: 'row__kcal', text: `${formatKcal(food.kcal * item.qty / food.baseQty)} kcal` })));
         }
       }
@@ -238,7 +239,7 @@ function dictate(root, app, props = {}) {
     }
     for (const warning of preview.warnings) body.appendChild(h('p', { class: 'problem-line', text: warning.message }));
     if (preview.save && !count) body.appendChild(h('p', { class: 'muted', text: 'Nothing to save yet' }));
-    body.appendChild(h('p', { class: 'muted', text: 'Say "meal two" to switch meals, "save" to finish.' }));
+    if (!typing) body.appendChild(h('p', { class: 'muted', text: 'Say "meal two" to switch meals, "save" to finish.' }));
     if (!typing || Constructor) dock.appendChild(button(typing ? 'Use the mic' : 'Type instead', 'link-btn', () => {
       if (!typing) { typing = true; session?.stop(); render(); focusText(); }
       else { typing = false; reason = ''; speechBase = draft; session.reset(); session.start(); render(); }
@@ -255,10 +256,10 @@ function dictate(root, app, props = {}) {
     speechBase = draft;
     transcript = { final: '', interim: '' };
     typing = !Constructor;
-    reason = Constructor ? '' : 'Speech needs a newer iPhone setting here, so use the mic on your keyboard.';
+    reason = Constructor ? '' : voiceUnavailable;
     if (Constructor) {
       try { recogniser = new Constructor(); }
-      catch { typing = true; reason = 'Speech needs a newer iPhone setting here, so use the mic on your keyboard.'; }
+      catch { typing = true; reason = voiceUnavailable; }
     }
     session = createSpeechSession({ recogniser,
       onTranscript: text => {
