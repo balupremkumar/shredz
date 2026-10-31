@@ -1,22 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 256 256">
-  <!-- Macro Diary app icon, Kove fleet family (design-system/app-icons template).
-       Glyph: a macro ring split into three arcs (protein, carbs, fat).
-       Full-bleed square: iOS and Android apply their own corner mask. -->
-  <defs>
-    <linearGradient id="col" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#16283F"/>
-      <stop offset="0.55" stop-color="#0A1220"/>
-      <stop offset="1" stop-color="#05080E"/>
-    </linearGradient>
-    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="7"/>
-    </filter>
-    <g id="glyph" fill="none" stroke="#9AE9FF" stroke-width="14" stroke-linecap="round">
-      <circle cx="128" cy="136" r="52" stroke-dasharray="88 21" transform="rotate(-80 128 136)"/>
-    </g>
-  </defs>
-  <rect width="256" height="256" fill="url(#col)"/>
-  <path d="M36 46q92-22 184 0" stroke="#9AE9FF" stroke-opacity="0.14" stroke-width="6" fill="none" stroke-linecap="round"/>
-  <use xlink:href="#glyph" filter="url(#soft)" opacity="0.55"/>
-  <use xlink:href="#glyph"/>
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="-20 -20 160 160">
+  <!-- Full-bleed tile; the operating system applies its own corner mask. -->
+  <rect x="-20" y="-20" width="160" height="160" fill="#070B12"/>
+  <g fill="none" stroke="#43A6F5" stroke-width="10">
+    <circle cx="60" cy="60" r="46" opacity=".32"/>
+    <circle cx="60" cy="60" r="30" opacity=".6"/>
+  </g>
+  <circle cx="60" cy="60" r="14" fill="#43A6F5"/>
 </svg>
