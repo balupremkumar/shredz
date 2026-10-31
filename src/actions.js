@@ -58,6 +58,9 @@ export function createApp({ store, makeId, today }) {
   }
   const saveSettings = async patch => {
     const settings = { ...structuredClone(state.data.settings), ...patch };
+    if (['protein', 'carbs', 'fat'].some(macro => settings.goals?.[macro] > 5000)) {
+      throw new Error('Grams must be numbers from 0 to 5000');
+    }
     await store.saveSettings(settings);
     return updateData({ settings });
   };
@@ -131,8 +134,8 @@ export function createApp({ store, makeId, today }) {
       }
       if (goalMode === 'grams') {
         const { protein, carbs, fat } = input;
-        if (![protein, carbs, fat].every(value => Number.isFinite(value) && value >= 0)) {
-          throw new Error('Grams must be numbers of 0 or more');
+        if (![protein, carbs, fat].every(value => Number.isFinite(value) && value >= 0 && value <= 5000)) {
+          throw new Error('Grams must be numbers from 0 to 5000');
         }
         const goals = { protein, carbs, fat };
         return saveSettings({ goalMode, goals: { ...goals, kcal: insights.kcalFromGrams(goals) },

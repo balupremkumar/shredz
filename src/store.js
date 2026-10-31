@@ -194,9 +194,10 @@ function entry(value) {
   recordObject(value, 'Entry');
   identifier(value.id, 'Entry id');
   date(value.date);
-  requireValue(Number.isInteger(value.meal) && value.meal >= 1, 'Meal must be an integer at least 1');
+  requireValue(Number.isInteger(value.meal) && value.meal >= 1 && value.meal <= 20, 'Meal must be an integer from 1 to 20');
   identifier(value.foodId, 'Entry foodId');
   positive(value.qty, 'qty');
+  requireValue(value.qty <= 1e6, 'qty must be at most 1000000');
   return structuredClone(value);
 }
 

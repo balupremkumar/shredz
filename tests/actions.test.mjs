@@ -29,6 +29,20 @@ async function seeded() {
   return context;
 }
 
+test('grams goals cap each macro at 5000 without changing persisted settings on rejection', async () => {
+  const { app, backend } = await seeded();
+  assert.equal((await app.actions.saveGoalSettings({ goalMode: 'grams', protein: 5000, carbs: 5000, fat: 5000 })).ok, true);
+  const before = app.getState();
+  for (const macro of ['protein', 'carbs', 'fat']) {
+    const result = await app.actions.saveGoalSettings({ goalMode: 'grams', protein: 100, carbs: 100, fat: 100, [macro]: 5001 });
+    assert.equal(result.ok, false); assert.match(result.error, /5000/);
+    assert.equal((await app.actions.saveGoals({ ...before.data.settings.goals, [macro]: 5001 })).ok, false);
+    assert.deepEqual(app.getState(), before);
+  }
+  const fresh = setup(backend).app; await fresh.init();
+  assert.deepEqual(fresh.select.settings(), before.data.settings);
+});
+
 test('whole-day routine, preview, totals and persistence', async () => {
   const { app, backend } = await seeded();
   const preview = app.select.preview(dictation);

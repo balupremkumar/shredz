@@ -80,6 +80,7 @@ async function boot() {
   probe.remove();
   const vv = window.visualViewport;
   let sheetOpen = false;
+  let previousSheet;
   let savedScrollY = 0;
   function updateViewport() {
     const geometry = sheetGeometry({ innerHeight: window.innerHeight,
@@ -109,6 +110,12 @@ async function boot() {
   }
   function render() {
     const state = controller.getState();
+    const nextSheet = state.sheet?.name;
+    if (previousSheet !== nextSheet) {
+      const previous = previousSheet;
+      previousSheet = nextSheet;
+      if (Object.hasOwn(sheets, previous)) sheets[previous].onClose?.();
+    }
     if (state.sheet && !sheetOpen) {
       savedScrollY = window.scrollY;
       sheetOpen = true;

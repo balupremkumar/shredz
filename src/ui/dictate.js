@@ -7,12 +7,22 @@ export function pickRecogniserConstructor(scope) {
   return scope.SpeechRecognition || scope.webkitSpeechRecognition || null;
 }
 
-export function createSpeechSession({ recogniser, onTranscript = () => {}, onState = () => {} }) {
+export function createSpeechSession({ recogniser, schedule, onTranscript = () => {}, onState = () => {} }) {
   let state = 'idle';
   let final = '';
   let interim = '';
   let restarts = 0;
-  const change = next => { state = next; onState(state); };
+  let pendingRestart;
+  function cancelRestart() {
+    if (!pendingRestart) return;
+    pendingRestart.cancelled = true;
+    pendingRestart.cancel?.();
+    pendingRestart = undefined;
+  }
+  const change = next => {
+    if (next !== 'listening') cancelRestart();
+    state = next; onState(state);
+  };
   function launch() {
     if (state !== 'listening') return;
     try { recogniser.start(); }
@@ -35,11 +45,17 @@ export function createSpeechSession({ recogniser, onTranscript = () => {}, onSta
       onTranscript({ final, interim });
     };
     recogniser.onend = () => {
-      if (state !== 'listening') return;
+      if (state !== 'listening' || pendingRestart) return;
       if (restarts >= 20) { change('error'); return; }
       restarts += 1;
       onState(state);
-      launch();
+      const pending = { cancelled: false };
+      pendingRestart = pending;
+      pending.cancel = schedule(() => {
+        if (pending.cancelled) return;
+        pendingRestart = undefined;
+        launch();
+      }, 250);
     };
     recogniser.onerror = event => {
       if (state !== 'listening') return;
@@ -62,6 +78,7 @@ export function createSpeechSession({ recogniser, onTranscript = () => {}, onSta
     },
     stop() {
       const wasListening = state === 'listening';
+      cancelRestart();
       change('stopped');
       if (recogniser && wasListening) {
         try { recogniser.stop(); } catch { /* Already ended on the phone. */ }
@@ -69,6 +86,13 @@ export function createSpeechSession({ recogniser, onTranscript = () => {}, onSta
     },
     reset() { final = ''; interim = ''; onTranscript({ final, interim }); },
   };
+}
+
+export function shouldAutoSave({ typing, finalText, draftPreview, finalPreview }) {
+  const preview = typing ? draftPreview : finalPreview;
+  return Boolean(preview?.save && (typing || finalText.trim())
+    && !draftPreview.unmatched.length && !preview.unmatched.length
+    && preview.meals.some(meal => meal.items.length));
 }
 
 const leading = /^(?:(?:\d+(?:[.,]\d+)*|one|two|three|four|five|six|seven|eight|nine|ten|half|a|an|couple|of|servings?|serves?|grams?|g|kilograms?|kg|millilitres?|milliliters?|mils?|ml|litres?|liters?|l|items?|scoops?|slices?|pieces?)\b[\s\p{P}]*)+/iu;
@@ -102,9 +126,11 @@ async function open(app, name, props) {
   if (!result.ok) app.toast(result.error);
 }
 function clearDraft() {
+  refresh = undefined; focusView = undefined; boundPanel = undefined;
   draft = ''; suppliedText = undefined; mealOverride = undefined;
   transcript = { final: '', interim: '' }; removed.clear();
   session?.stop(); session = undefined; recogniser = undefined;
+  speechBase = ''; typing = false; reason = '';
 }
 function dictate(root, app, props = {}) {
   if (props.text !== undefined && props.text !== suppliedText) {
@@ -131,11 +157,11 @@ function dictate(root, app, props = {}) {
     textarea?.focus();
     textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
   }
-  async function save() {
-    if (saving || !preview.meals.some(meal => meal.items.length)) return;
+  async function save(parsed = preview) {
+    if (saving || !parsed.meals.some(meal => meal.items.length)) return;
     saving = true; saveButton.disabled = true;
     session?.stop();
-    const result = await app.actions.addParsed(app.state.date, preview);
+    const result = await app.actions.addParsed(app.state.date, parsed);
     if (!result.ok) {
       saving = false; saveButton.disabled = false; app.toast(result.error); return;
     }
@@ -238,17 +264,22 @@ function dictate(root, app, props = {}) {
       body.appendChild(section);
     }
     for (const warning of preview.warnings) body.appendChild(h('p', { class: 'problem-line', text: warning.message }));
+    if (preview.save && preview.unmatched.length) body.appendChild(h('p', { class: 'muted', text: 'Fix the words in red, then tap Save.' }));
     if (preview.save && !count) body.appendChild(h('p', { class: 'muted', text: 'Nothing to save yet' }));
     if (!typing) body.appendChild(h('p', { class: 'muted', text: 'Say "meal two" to switch meals, "save" to finish.' }));
     if (!typing || Constructor) dock.appendChild(button(typing ? 'Use the mic' : 'Type instead', 'link-btn', () => {
       if (!typing) { typing = true; session?.stop(); render(); focusText(); }
       else { typing = false; reason = ''; speechBase = draft; session.reset(); session.start(); render(); }
     }));
-    saveButton = button(`Save ${count} ${count === 1 ? 'item' : 'items'}`, 'pill pill--primary', save);
+    saveButton = button(`Save ${count} ${count === 1 ? 'item' : 'items'}`, 'pill pill--primary', () => save());
     saveButton.disabled = saving || !count; dock.appendChild(saveButton);
     rendering = false;
     if (hadFocus) focusText();
-    if (preview.save && count && autoSaveText !== draft) { autoSaveText = draft; void save(); }
+    const finalText = [speechBase, transcript.final].filter(Boolean).join(' ');
+    const finalPreview = typing ? preview : app.select.preview(mealOverride ? `meal ${mealOverride}, ${finalText}` : finalText);
+    if (autoSaveText !== draft && shouldAutoSave({ typing, finalText, draftPreview: preview, finalPreview })) {
+      autoSaveText = draft; void save(typing ? preview : finalPreview);
+    }
   }
   refresh = render;
   focusView = focusText;
@@ -262,6 +293,7 @@ function dictate(root, app, props = {}) {
       catch { typing = true; reason = voiceUnavailable; }
     }
     session = createSpeechSession({ recogniser,
+      schedule: (fn, ms) => { const timer = setTimeout(fn, ms); return () => clearTimeout(timer); },
       onTranscript: text => {
         transcript = text;
         draft = [speechBase, text.final, text.interim].filter(Boolean).join(' ');
@@ -303,4 +335,6 @@ function dictate(root, app, props = {}) {
 }
 
 const confirm = (root, app, props) => dictate(root, app, props);
+dictate.onClose = clearDraft;
+confirm.onClose = clearDraft;
 export const sheets = { dictate, confirm };
