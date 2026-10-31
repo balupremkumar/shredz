@@ -27,6 +27,7 @@ const FILES = [
   './src/ui/foods.js',
   './src/ui/settings.js',
   './src/ui/weight.js',
+  './src/ui/welcome.js',
 ];
 
 self.addEventListener('install', event => {
