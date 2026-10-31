@@ -24,8 +24,8 @@ for (const [names, unit, factor] of [
 
 function normalise(text) {
   return text.toLowerCase().replace(/(\d),(?=\d{3}\b)/g, '$1')
-    .replace(/[?!]/g, ' , ').replace(/&/g, ' and ').replace(/[-'\u2019]/g, '')
-    .replace(/[^\p{L}\p{N}\s.,]/gu, ' ')
+    .replace(/[?!]/g, ' , ').replace(/&/g, ' and ').replace(/-(?!\d)|['\u2019]/g, '')
+    .replace(/[^\p{L}\p{N}\s.,-]/gu, ' ')
     .replace(/(?<!\d)\.|\.(?!\d)/g, ' , ')
     .replace(/,/g, ' , ').replace(/\b(?:actually|no wait|scratch that|sorry)\b/g, ' correction ')
     .replace(/\s+/g, ' ').trim();
@@ -56,13 +56,13 @@ function distance(a, b) {
 function quantityAt(tokens, start) {
   const word = tokens[start].word;
   const at = i => tokens[i]?.word;
-  const joined = /^(\d+(?:\.\d+)?)([a-z]+)$/.exec(word);
+  const joined = /^(-?\d+(?:\.\d+)?)([a-z]+)$/.exec(word);
   if (joined && units.has(joined[2])) {
     return { start, end: start + 1, value: Number(joined[1]), spoken: units.get(joined[2]) };
   }
   let value;
   let end = start;
-  if (/^\d+(?:\.\d+)?$/.test(word)) { value = Number(word); end += 1; }
+  if (/^-?\d+(?:\.\d+)?$/.test(word)) { value = Number(word); end += 1; }
   else if (word === 'half') {
     value = 0.5; end += 1;
     if (at(end) === 'a' || at(end) === 'an') end += 1;
@@ -225,15 +225,22 @@ function parseMeal(text, meal, foods, savedMeals, result) {
 
   const explicitIds = new Set(mentions.filter(mention => mention.food && mention.quantity).map(mention => mention.food.id));
   const items = [];
+  const validQty = (qty, foodId) => {
+    if (Number.isFinite(qty) && qty > 0 && qty <= 1e6) return true;
+    result.warnings.push({ meal, foodId, message: 'Quantity must be greater than 0 and at most 1000000.' });
+    return false;
+  };
   for (const mention of mentions) {
     const { food, quantity, savedMeal } = mention;
     if (mention.replaced) continue;
+    if (quantity && !validQty(quantity.value, food?.id ?? null)) continue;
     if (savedMeal) {
       let multiplier = 1;
       if (quantity?.spoken) {
         result.warnings.push({ meal, foodId: null,
           message: `Spoken unit ${raw(quantity.start, quantity.end)} ignored for saved meal ${savedMeal.name}.` });
       } else if (quantity) multiplier = quantity.value;
+      if (!validQty(multiplier, null)) continue;
       const span = raw(Math.min(mention.start, quantity?.start ?? mention.start),
         Math.max(mention.end, quantity?.end ?? mention.end));
       for (const item of savedMeal.items ?? []) {
@@ -243,7 +250,9 @@ function parseMeal(text, meal, foods, savedMeals, result) {
             message: `Saved meal ${savedMeal.name} skipped ${item.foodId}: food not found.` });
           continue;
         }
-        items.push({ foodId: item.foodId, qty: item.qty * multiplier, unit: itemFood.unit,
+        const qty = item.qty * multiplier;
+        if (!validQty(qty, item.foodId)) continue;
+        items.push({ foodId: item.foodId, qty, unit: itemFood.unit,
           raw: span, savedMealId: savedMeal.id });
       }
       continue;
@@ -265,6 +274,7 @@ function parseMeal(text, meal, foods, savedMeals, result) {
         }
       }
     }
+    if (!validQty(qty, food.id)) continue;
     items.push({ foodId: food.id, qty, unit: food.unit,
       raw: raw(Math.min(mention.start, quantity?.start ?? mention.start),
         Math.max(mention.end, quantity?.end ?? mention.end)) });
@@ -291,12 +301,20 @@ export function parseDictation(text, foods, { defaultMeal = 1, savedMeals = [] }
     if (!segments.has(meal)) segments.set(meal, []);
     segments.get(meal).push(content);
   };
-  const markers = /\bmeal\s+(?:(?:number|no)\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten|to|too)\b/g;
+  const markers = new RegExp(`\\bmeal\\s+(?:(?:number|no)\\s+)?(-?\\d+|${[...numberWords.keys()].join('|')}|to|too)\\b`, 'g');
+  if (!Number.isInteger(defaultMeal) || defaultMeal < 1 || defaultMeal > 20) {
+    result.warnings.push({ meal: 1, foodId: null, message: 'Default meal must be from 1 to 20. Using meal 1.' });
+    defaultMeal = 1;
+  }
   let meal = defaultMeal;
   let start = 0;
   for (const marker of normalised.matchAll(markers)) {
     append(meal, normalised.slice(start, marker.index).trim());
     meal = ['to', 'too'].includes(marker[1]) ? 2 : numberWords.get(marker[1]) ?? Number(marker[1]);
+    if (meal < 1 || meal > 20) {
+      result.warnings.push({ meal: defaultMeal, foodId: null, message: `Meal ${marker[1]} must be from 1 to 20. Using meal ${defaultMeal}.` });
+      meal = defaultMeal;
+    }
     start = marker.index + marker[0].length;
   }
   append(meal, normalised.slice(start).trim());

@@ -30,6 +30,17 @@ const makeData = () => ({
 });
 const setup = () => createStore(createMemoryBackend());
 
+test('entry quantity cap applies before single, batch and replacement writes', async () => {
+  const store = setup();
+  await store.saveEntry(makeEntry({ qty: 1e6 }));
+  const before = await store.loadAll();
+  await assert.rejects(store.saveEntry(makeEntry({ meal: 21 })), /Meal must be/);
+  await assert.rejects(store.saveEntry(makeEntry({ qty: 1e6 + 1 })), /qty must be at most/);
+  await assert.rejects(store.saveEntries([makeEntry({ qty: 60 }), makeEntry({ id: 'bad', qty: 1e6 + 1 })]), /qty must be at most/);
+  await assert.rejects(store.replaceAll({ ...makeData(), entries: [makeEntry({ qty: 1e6 + 1 })] }), /qty must be at most/);
+  assert.deepEqual(await store.loadAll(), before);
+});
+
 test('constants, lazy IndexedDB creation and import without IndexedDB', async () => {
   assert.equal(DB_NAME, 'macro-diary');
   assert.equal(DB_VERSION, 2);

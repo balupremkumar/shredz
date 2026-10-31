@@ -14,6 +14,36 @@ const foods = [
   baseQty: 100, kcal: 1, protein: 1, carbs: 1, fat: 1,
 }));
 Object.freeze(foods);
+test('quantities outside the cap are warned and dropped after conversion and expansion', () => {
+  for (const text of ['0 milk', 'zero milk', '-1 milk', '-1ml milk', '1000001 milk', '1000.001 l milk', '4001 servings milk', `${'9'.repeat(310)} milk`]) {
+    const result = parseDictation(text, foods);
+    assert.deepEqual(result.meals, [], text);
+    assert.ok(result.warnings.some(warning => /Quantity/.test(warning.message)), text);
+  }
+  assert.equal(parseDictation('1000000 milk', foods).meals[0].items[0].qty, 1e6);
+  assert.equal(parseDictation('4000 servings milk', foods).meals[0].items[0].qty, 1e6);
+  const savedMeals = [{ id: 'shake', name: 'Shake', items: [{ foodId: 'milk', qty: 250 }] }];
+  for (const text of ['0 shake', '-1 shake', '4001 shake', '1000001 shake', '0 servings shake', '1000001 grams shake']) {
+    const result = parseDictation(text, foods, { savedMeals });
+    assert.deepEqual(result.meals, [], text); assert.ok(result.warnings.length, text);
+  }
+  assert.equal(parseDictation('4000 shake', foods, { savedMeals }).meals[0].items[0].qty, 1e6);
+});
+
+test('meal numbers stay in 1 to 20 and invalid markers use the default with a warning', () => {
+  for (const marker of ['0', '-1', '21', '999999999999999999999', 'thirty']) {
+    const result = parseDictation(`meal ${marker} milk`, foods, { defaultMeal: 3 });
+    assert.equal(result.meals[0].meal, 3, marker); assert.ok(result.warnings.length, marker);
+  }
+  for (const marker of ['1', '20', 'twenty']) {
+    const result = parseDictation(`meal ${marker} milk`, foods);
+    assert.equal(result.meals[0].meal, marker === '1' ? 1 : 20); assert.deepEqual(result.warnings, []);
+  }
+  for (const defaultMeal of [0, 21, Infinity, NaN, 1.5]) {
+    const result = parseDictation('milk', foods, { defaultMeal });
+    assert.equal(result.meals[0].meal, 1); assert.ok(result.warnings.length);
+  }
+});
 const compact = result => result.meals.map(({ meal, items }) => [meal,
   items.map(({ foodId, qty, unit }) => [foodId, qty, unit])]);
 

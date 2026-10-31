@@ -1,6 +1,6 @@
 ﻿import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSpeechSession, pickRecogniserConstructor, foodName, isFoodName, sheets } from '../src/ui/dictate.js';
+import { createSpeechSession, pickRecogniserConstructor, foodName, isFoodName, shouldAutoSave, sheets } from '../src/ui/dictate.js';
 
 class Recogniser {
   constructor() { this.starts = 0; this.stops = 0; Recogniser.last = this; }
@@ -14,8 +14,14 @@ class Recogniser {
 function fixture() {
   const recogniser = new Recogniser();
   const texts = [], states = [];
-  const session = createSpeechSession({ recogniser, onTranscript: text => texts.push(text), onState: state => states.push(state) });
-  return { recogniser, texts, states, session };
+  const pending = [];
+  const schedule = (fn, ms) => {
+    const task = { fn, ms, cancelled: false }; pending.push(task);
+    return () => { task.cancelled = true; };
+  };
+  const runNext = () => { const task = pending.shift(); if (!task.cancelled) task.fn(); };
+  const session = createSpeechSession({ recogniser, schedule, onTranscript: text => texts.push(text), onState: state => states.push(state) });
+  return { recogniser, texts, states, session, pending, runNext };
 }
 test('speech config, interim replacement, finals join, double start and reset', () => {
   const { recogniser: r, session: s, texts } = fixture();
@@ -35,14 +41,36 @@ test('resultIndex prevents old final results being appended again', () => {
   assert.equal(texts.at(-1).final, 'milk banana');
 });
 test('restart on end, cap 20, new result resets cap, stop prevents restart', () => {
-  const { recogniser: r, session: s } = fixture(); s.start();
-  for (let i = 0; i < 20; i += 1) r.onend();
+  const { recogniser: r, session: s, runNext } = fixture(); s.start();
+  for (let i = 0; i < 20; i += 1) { r.onend(); runNext(); }
   assert.equal(r.starts, 21); assert.equal(s.state, 'listening');
-  r.result('milk'); r.onend(); assert.equal(r.starts, 22);
-  for (let i = 0; i < 20; i += 1) r.onend();
+  r.result('milk'); r.onend(); runNext(); assert.equal(r.starts, 22);
+  for (let i = 0; i < 19; i += 1) { r.onend(); runNext(); }
+  r.onend();
   assert.equal(s.state, 'error'); assert.equal(r.starts, 41);
   s.start(); s.stop(); const starts = r.starts; r.onend();
   assert.equal(s.state, 'stopped'); assert.equal(r.stops, 1); assert.equal(r.starts, starts);
+});
+test('restart waits 250 ms and stopping cancels even an already queued callback', () => {
+  const { recogniser: r, session: s, pending, runNext } = fixture();
+  s.start(); r.onend();
+  assert.equal(r.starts, 1); assert.equal(pending[0].ms, 250);
+  runNext(); assert.equal(r.starts, 2);
+  r.onend(); const task = pending[0];
+  s.stop(); assert.equal(task.cancelled, true);
+  s.start(); const starts = r.starts;
+  task.fn(); runNext(); assert.equal(r.starts, starts);
+  s.stop();
+});
+test('auto-save requires final save in listening mode and recognised words in both modes', () => {
+  const preview = (save, unmatched = []) => ({ save, unmatched, meals: [{ items: [{ foodId: 'milk', qty: 200 }] }] });
+  const options = { typing: false, finalText: 'milk', draftPreview: preview(true), finalPreview: preview(false) };
+  assert.equal(shouldAutoSave(options), false, 'interim-only save');
+  assert.equal(shouldAutoSave({ ...options, finalText: 'milk save', finalPreview: preview(true) }), true, 'final save');
+  assert.equal(shouldAutoSave({ ...options, finalText: 'milk save', finalPreview: preview(true), draftPreview: preview(true, ['unknown']) }), false);
+  assert.equal(shouldAutoSave({ ...options, typing: true }), true, 'keyboard dictation');
+  assert.equal(shouldAutoSave({ ...options, typing: true, draftPreview: preview(true, ['unknown']) }), false);
+  assert.equal(shouldAutoSave({ ...options, finalText: 'unknown save', finalPreview: preview(true, ['unknown']) }), false);
 });
 test('denied, ignored errors, generic errors, thrown start and unsupported', () => {
   for (const error of ['not-allowed', 'service-not-allowed']) {
@@ -187,7 +215,9 @@ test('speech starts once across renders, interim and final preview, switch typin
     assert.equal(r.starts, 1); assert.equal(field(e.root), undefined);
     assert.equal(classed(e.root, 'speak-mic')[0].getAttribute('aria-label'), 'Tap to stop');
     e.render({}, true); assert.equal(r.starts, 1);
-    r.onend(); r.onend(); assert.match(e.root.textContent, /Didn't catch that/);
+    r.onend(); await new Promise(resolve => setTimeout(resolve, 275));
+    r.onend(); await new Promise(resolve => setTimeout(resolve, 275));
+    assert.match(e.root.textContent, /Didn't catch that/);
     r.result('milk', false); assert.match(e.root.textContent, /Green milk/);
     r.result('milk'); e.render({}, true); r.result('banana'); assert.equal(e.previews.at(-1), 'milk banana');
     find(e.root, 'Type instead').click(); assert.equal(r.stops, 1); assert.equal(document.activeElement, field(e.root));
@@ -197,6 +227,48 @@ test('speech starts once across renders, interim and final preview, switch typin
     e.doc.visibilityState = 'visible'; classed(e.root, 'speak-mic')[0].click();
     e.root.isConnected = false; r.result('ignored'); assert.equal(r.stops, 3);
   } finally { await e.cleanup(); }
+});
+
+test('close hook stops the mic immediately and clears the draft on reopening', async () => {
+  const e = environment(Recogniser);
+  try {
+    e.render({ text: '' }); const r = Recogniser.last;
+    r.result('milk');
+    sheets.dictate.onClose();
+    assert.equal(r.stops, 1);
+    r.result('late save'); assert.equal(e.calls.length, 0);
+    e.render();
+    assert.equal(find(e.root, 'Save 0 items').disabled, true);
+    assert.equal(classed(e.root, 'speak-transcript')[0].textContent.trim(), '');
+    assert.notEqual(Recogniser.last, r);
+    sheets.confirm.onClose(); assert.equal(Recogniser.last.stops, 1);
+  } finally { await e.cleanup(); }
+});
+
+test('interim save stays open and final save persists only final recognised items', async () => {
+  const e = environment(Recogniser);
+  try {
+    e.render({ text: '' }); const r = Recogniser.last;
+    r.result('milk save', false); await settle();
+    assert.equal(e.calls.length, 0);
+    r.result('milk'); r.result('save', false); await settle();
+    assert.equal(e.calls.length, 0);
+    r.result('save'); await settle();
+    assert.equal(e.calls.filter(call => call[0] === 'save').length, 1);
+  } finally { await e.cleanup(); }
+});
+
+test('unrecognised words block typed and spoken auto-save and show the correction hint', async () => {
+  for (const Constructor of [undefined, Recogniser]) {
+    const e = environment(Constructor);
+    try {
+      e.unmatched([{ meal: 1, raw: 'unknown' }]); e.render({ text: '' });
+      if (Constructor) Recogniser.last.result('milk unknown save');
+      else e.input('milk unknown save');
+      await settle(); assert.equal(e.calls.length, 0);
+      assert.match(e.root.textContent, /Fix the words in red, then tap Save\./);
+    } finally { await e.cleanup(); }
+  }
 });
 test('spoken save, denied fallback, thrown start and visibility lifecycle', async () => {
   const e = environment(Recogniser);
