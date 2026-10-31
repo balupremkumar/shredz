@@ -23,6 +23,39 @@ export function clear(element) {
   element.replaceChildren();
 }
 
+export function fieldAttrs(kind) {
+  const kinds = {
+    search: { type: 'search', inputmode: 'search', enterkeyhint: 'search', autocapitalize: 'none' },
+    number: { type: 'text', inputmode: 'decimal', enterkeyhint: 'done', autocapitalize: 'none' },
+    text: { type: 'text', enterkeyhint: 'done', autocapitalize: 'words' },
+    note: { enterkeyhint: 'enter', autocapitalize: 'sentences' },
+  };
+  if (!Object.hasOwn(kinds, kind)) throw new TypeError('Unknown field kind');
+  return { autocomplete: 'off', autocorrect: 'off', spellcheck: 'false',
+    'data-1p-ignore': '', 'data-lpignore': 'true', 'data-form-type': 'other', ...kinds[kind] };
+}
+
+export function isRiskyFieldToken(value) {
+  return typeof value === 'string' && /name|email|mail|card|cc|pass|user|login|addr|phone|tel|zip|postal|otp|code/i.test(value);
+}
+
+export function hardenFields(root) {
+  for (const field of root.querySelectorAll('input, textarea')) {
+    const type = (field.getAttribute('type') || '').toLowerCase();
+    const note = field.tagName.toLowerCase() === 'textarea';
+    if (!note && ['checkbox', 'radio', 'range', 'date', 'file', 'button', 'submit', 'hidden'].includes(type)) continue;
+    const mode = (field.getAttribute('inputmode') || '').toLowerCase();
+    const kind = note ? 'note' : type === 'search' ? 'search'
+      : ['decimal', 'numeric'].includes(mode) ? 'number' : 'text';
+    for (const [key, value] of Object.entries(fieldAttrs(kind))) {
+      if (key === 'type') continue;
+      if (['autocapitalize', 'enterkeyhint', 'inputmode'].includes(key) && field.hasAttribute(key)) continue;
+      field.setAttribute(key, value);
+    }
+    if (isRiskyFieldToken(field.getAttribute('name'))) field.removeAttribute('name');
+  }
+}
+
 const shapes = {
   diary: 'M5 3h14v18H5V3zm3 4v2h8V7H8zm0 4v2h8v-2H8zm0 4v2h6v-2H8z',
   foods: 'M6 2h2v7h1V2h2v7c0 2-1 3-2 3v10H6V12c-2-1-3-2-3-4V2h2v7h1V2zm12 0h3v20h-3v-8h-3V8c0-3 1-5 3-6z',
