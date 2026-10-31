@@ -1,4 +1,4 @@
-import { h } from './dom.js';
+import { h, fieldAttrs } from './dom.js';
 import { formatKcal, formatMacro, formatQty, parseNumber } from '../format.js';
 
 export function render(root, app) {
@@ -50,13 +50,14 @@ function foodEdit(root, app, props = {}) {
 
   const inputs = {};
   function field(key, label, value, attrs = {}) {
+    const id = `food-edit-${key === 'name' ? 'title' : key}`;
     // Numbers select on focus so typing replaces the 0 instead of appending to it.
     const input = h('input', { class: 'input', attrs: {
-      id: `food-edit-${key}`, type: 'text', value, enterkeyhint: 'done', ...attrs,
+      ...fieldAttrs(attrs.inputmode ? 'number' : 'text'), id, value, ...attrs,
     }, on: attrs.inputmode ? { focus: event => event.target.select() } : {} });
     inputs[key] = input;
     return h('div', { class: 'field' },
-      h('label', { class: 'field__label', text: label, attrs: { for: `food-edit-${key}` } }), input,
+      h('label', { class: 'field__label', text: label, attrs: { for: id } }), input,
     );
   }
   const initialUnit = food?.unit || 'g';
