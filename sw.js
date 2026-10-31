@@ -1,4 +1,4 @@
-const VERSION = '0.2.0'; // Must match APP_VERSION in src/version.js; enforced by tests.
+const VERSION = '2.0.0'; // Must match APP_VERSION in src/version.js; enforced by tests.
 const CACHE = 'macro-diary-' + VERSION;
 const FILES = [
   './',
