@@ -26,7 +26,7 @@ test('works offline after the first visit, data intact', async ({ page, context 
   await page.reload();
   await expect(page.locator('.tabbar .tab')).toHaveCount(3);
   await expectFood(page, '839');
-  await page.getByRole('button', { name: /Dictate/ }).click();
+  await page.getByRole('button', { name: 'Speak' }).click();
   await expect(page.getByLabel('What you ate')).toBeVisible();
   await context.setOffline(false);
 });

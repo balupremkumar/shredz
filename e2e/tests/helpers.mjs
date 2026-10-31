@@ -3,8 +3,10 @@ import { seed, localDate, FOODS, SENTENCE } from '../fixtures.mjs';
 export { seed, localDate, FOODS, SENTENCE };
 
 // Opens the app on a clean database and collects page errors for the test to assert on.
-export async function openApp(page, data) {
+export async function openApp(page, data, { welcome = false } = {}) {
   const errors = [];
+  // A fresh install shows the 3-step welcome; skip it unless the test is about it.
+  if (!welcome) await page.addInitScript(() => { try { localStorage.setItem('shredz.welcomeDone', '1'); } catch {} });
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto('index.html');
@@ -23,9 +25,9 @@ export function usualDay(date, prefix = date) {
   ];
 }
 
-// Auto-retrying check of the Food figure in the summary (actions save asynchronously).
+// Auto-retrying check of the eaten figure in the summary equation (actions save asynchronously).
 export async function expectFood(page, kcal) {
-  await expect(page.locator('.summary .summary__col').nth(1).locator('.summary__num')).toHaveText(kcal);
+  await expect(page.locator('p[data-eaten]')).toHaveAttribute('data-eaten', kcal);
 }
 
 export async function expectNoSideScroll(page) {
