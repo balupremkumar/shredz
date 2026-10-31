@@ -424,7 +424,7 @@ function editEntry(root, app, { id }) {
       qty => app.actions.updateEntryQty(id, qty), close);
     control.input.className += ' qty-amount__input';
     const amount = h('div', { class: 'qty-amount' }, control.input,
-      h('span', { class: 'muted qty-amount__unit', text: entry.food.unit }));
+      h('span', { class: 'muted qty-amount__unit', text: formatQty(entry.qty, entry.food.unit).replace(/^\S+\s/, '') }));
     const quick = h('div', { class: 'qty-quick' });
     for (const qty of quickAmounts(entry.food.unit)) {
       const pick = button(formatQty(qty, entry.food.unit), 'link-btn qty-quick__btn', () => {
