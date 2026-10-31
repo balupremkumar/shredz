@@ -66,7 +66,7 @@ function chart(weights, trend, date, today) {
   if (trend.length) {
     svg.appendChild(svgElement('polyline', {
       points: trend.map(point => `${x(point.date)},${y(point.kg)}`).join(' '),
-      fill: 'none', stroke: '#43A6F5', 'stroke-width': 2.5,
+      fill: 'none', stroke: 'var(--azure)', 'stroke-width': 2.5,
       'stroke-linejoin': 'round', 'stroke-linecap': 'round',
     }));
   }
@@ -83,7 +83,7 @@ function chart(weights, trend, date, today) {
     h('p', { class: 'muted', text: 'Line: 7-day average. Dots: daily.' }));
 }
 
-function reportSection(app) {
+function averagesSection(app) {
   const reports = [app.select.report(7), app.select.report(30)];
   const rows = [
     ['Calories', report => formatKcal(report.kcal)],
@@ -92,8 +92,7 @@ function reportSection(app) {
     ['Fat', report => formatGrams(report.fat)],
     ['Weight change', report => (report.weightChange === null ? 'n/a' : `${formatChange(report.weightChange)} kg`)],
   ];
-  return h('section', { class: 'section' },
-    h('div', { class: 'section__head' }, h('h2', { text: 'Report' })),
+  const panel = h('div', { attrs: { id: 'weight-averages', hidden: true } },
     h('div', { class: 'list' },
       h('div', { class: 'row' },
         h('span', { class: 'row__body' }),
@@ -104,6 +103,17 @@ function reportSection(app) {
         reports.map(report => h('span', { class: 'row__kcal num', text: value(report) }))))),
     h('p', { class: 'muted', text: reports.map(report => `${report.loggedDays} of ${report.days} days logged`).join(', ') }),
   );
+  const toggle = h('button', {
+    class: 'row',
+    attrs: { type: 'button', 'aria-expanded': 'false', 'aria-controls': 'weight-averages' },
+    on: { click: () => {
+      panel.hidden = !panel.hidden;
+      toggle.setAttribute('aria-expanded', String(!panel.hidden));
+    } },
+  }, h('span', { class: 'row__body' }, h('span', { class: 'row__name', text: '7 and 30 day averages' })));
+  return h('section', { class: 'section' },
+    h('div', { class: 'section__head' }, h('h2', { text: 'Averages' })),
+    h('div', { class: 'list' }, toggle), panel);
 }
 
 export function render(root, app) {
@@ -130,7 +140,6 @@ export function render(root, app) {
       h('button', { class: 'pill pill--primary', text: 'Save', attrs: { type: 'submit' } })),
     problem,
   ));
-  root.appendChild(reportSection(app));
   root.appendChild(h('section', { class: 'section' },
     h('div', { class: 'section__head' }, h('h2', { text: 'Last 30 days' })),
     chart(app.select.weights(30), app.select.weightTrend(30), date, today),
@@ -154,6 +163,7 @@ export function render(root, app) {
     recent.length ? h('div', { class: 'list' }, recent)
       : h('p', { class: 'empty', text: 'Log your first weight above.' }),
   ));
+  root.appendChild(averagesSection(app));
 }
 
 function editWeight(root, app, { date }) {
