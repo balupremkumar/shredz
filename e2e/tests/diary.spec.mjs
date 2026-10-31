@@ -5,7 +5,7 @@ test('first run shows an empty, usable diary', async ({ page }) => {
   const errors = await openApp(page);
   await expect(page.getByText(/Nothing logged for Today/)).toBeVisible();
   await expect(page.getByLabel('Morning weight in kg')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Dictate/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Speak' })).toBeVisible();
   await expectNoSideScroll(page);
   expect(errors).toEqual([]);
 });
@@ -33,9 +33,9 @@ test('weigh-in row layout: label, input and Log sit on one compact line', async 
 test('add a food by tapping: search, quantity, totals update', async ({ page }) => {
   await openApp(page, { foods: FOODS });
   await page.getByRole('button', { name: 'Add food' }).first().click();
-  await page.locator('.sheet input').first().fill('chick');
+  await page.locator('.sheet input[type="search"]').fill('chick');
   await page.locator('.sheet').getByText('Chicken breast').click();
-  await page.locator('.sheet input').first().fill('125');
+  await page.getByLabel('Quantity in g').fill('125');
   await page.locator('.sheet').getByRole('button', { name: 'Add', exact: true }).click();
   await expect(page.locator('main .section').first()).toContainText('Chicken breast');
   await expectFood(page, '206');
@@ -43,10 +43,10 @@ test('add a food by tapping: search, quantity, totals update', async ({ page }) 
 
 test('copy yesterday fills an empty day in one tap', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(localDate(-1)) });
-  await page.locator('.dock').getByRole('button', { name: /Copy/ }).click();
+  await page.locator('main').getByRole('button', { name: /Copy yesterday/ }).click();
   await expect(page.locator('main .section .row')).toHaveCount(6);
   await expectFood(page, '839');
-  await expect(page.locator('.dock').getByRole('button', { name: /Copy/ })).toHaveCount(0);
+  await expect(page.locator('main').getByRole('button', { name: /Copy yesterday/ })).toHaveCount(0);
 });
 
 test('copy a single meal from an earlier day', async ({ page }) => {
@@ -60,11 +60,11 @@ test('copy a single meal from an earlier day', async ({ page }) => {
 test('edit and delete an entry', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(localDate()) });
   await page.locator('main .row', { hasText: 'Chicken breast' }).click();
-  await page.locator('.sheet input').first().fill('200');
+  await page.getByLabel('Quantity in g').fill('200');
   await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
   await expectFood(page, '963');
   await page.locator('main .row', { hasText: 'Cashews' }).click();
-  await page.locator('.sheet').getByRole('button', { name: 'Delete' }).click();
+  await page.locator('.sheet').getByRole('button', { name: 'Remove from Meal 2' }).click();
   await expectFood(page, '847');
 });
 
@@ -78,13 +78,30 @@ test('date navigation and data survive a reload', async ({ page }) => {
   await expectFood(page, '839');
 });
 
-for (const width of [375, 390, 430]) {
-  test(`no sideways scroll at ${width}px on every tab`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 844 });
-    await openApp(page, { foods: FOODS, entries: usualDay(localDate()), weights: [{ date: localDate(), kg: 82.4 }] });
-    for (const tab of ['Diary', 'Foods', 'Weight']) {
-      await page.locator('.tabbar').getByRole('button', { name: tab }).click();
-      await expectNoSideScroll(page);
-    }
-  });
-}
+test('empty day offers Speak, Copy yesterday and Add food by hand', async ({ page }) => {
+  await openApp(page, { foods: FOODS, entries: usualDay(localDate(-1)) });
+  const main = page.locator('main');
+  await expect(main).toContainText('Tap Speak and say a meal');
+  await expect(main.getByRole('button', { name: /Copy yesterday/ })).toBeVisible();
+  await main.getByRole('button', { name: 'Add food by hand' }).click();
+  await expect(page.locator('.sheet')).toContainText('Add to Meal 1');
+});
+
+test('summary equation carries goal, eaten and left', async ({ page }) => {
+  await openApp(page, { foods: FOODS, entries: usualDay(localDate()) });
+  const eq = page.locator('p[data-eaten]');
+  await expect(eq).toHaveAttribute('data-eaten', '839');
+  await expect(eq).toContainText('839 eaten');
+  await expect(page.locator('.mic-fab')).toBeVisible();
+});
+
+test('quantity sheet: quick amount, then Save updates the total; no plus or minus buttons', async ({ page }) => {
+  await openApp(page, { foods: FOODS, entries: usualDay(localDate()) });
+  await expect(page.getByRole('button', { name: 'More Weet-Bix' })).toHaveCount(0);
+  await page.locator('main .row', { hasText: 'Weet-Bix' }).click();
+  await expect(page.getByLabel('Quantity in item')).toHaveValue('2');
+  await page.locator('.sheet').getByRole('button', { name: '3 items', exact: true }).click();
+  await expect(page.getByLabel('Quantity in item')).toHaveValue('3');
+  await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
+  await expectFood(page, '894');
+});

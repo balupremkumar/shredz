@@ -14,6 +14,36 @@ const foods = [
   baseQty: 100, kcal: 1, protein: 1, carbs: 1, fat: 1,
 }));
 Object.freeze(foods);
+test('quantities outside the cap are warned and dropped after conversion and expansion', () => {
+  for (const text of ['0 milk', 'zero milk', '-1 milk', '-1ml milk', '1000001 milk', '1000.001 l milk', '4001 servings milk', `${'9'.repeat(310)} milk`]) {
+    const result = parseDictation(text, foods);
+    assert.deepEqual(result.meals, [], text);
+    assert.ok(result.warnings.some(warning => /Quantity/.test(warning.message)), text);
+  }
+  assert.equal(parseDictation('1000000 milk', foods).meals[0].items[0].qty, 1e6);
+  assert.equal(parseDictation('4000 servings milk', foods).meals[0].items[0].qty, 1e6);
+  const savedMeals = [{ id: 'shake', name: 'Shake', items: [{ foodId: 'milk', qty: 250 }] }];
+  for (const text of ['0 shake', '-1 shake', '4001 shake', '1000001 shake', '0 servings shake', '1000001 grams shake']) {
+    const result = parseDictation(text, foods, { savedMeals });
+    assert.deepEqual(result.meals, [], text); assert.ok(result.warnings.length, text);
+  }
+  assert.equal(parseDictation('4000 shake', foods, { savedMeals }).meals[0].items[0].qty, 1e6);
+});
+
+test('meal numbers stay in 1 to 20 and invalid markers use the default with a warning', () => {
+  for (const marker of ['0', '-1', '21', '999999999999999999999', 'thirty']) {
+    const result = parseDictation(`meal ${marker} milk`, foods, { defaultMeal: 3 });
+    assert.equal(result.meals[0].meal, 3, marker); assert.ok(result.warnings.length, marker);
+  }
+  for (const marker of ['1', '20', 'twenty']) {
+    const result = parseDictation(`meal ${marker} milk`, foods);
+    assert.equal(result.meals[0].meal, marker === '1' ? 1 : 20); assert.deepEqual(result.warnings, []);
+  }
+  for (const defaultMeal of [0, 21, Infinity, NaN, 1.5]) {
+    const result = parseDictation('milk', foods, { defaultMeal });
+    assert.equal(result.meals[0].meal, 1); assert.ok(result.warnings.length);
+  }
+});
 const compact = result => result.meals.map(({ meal, items }) => [meal,
   items.map(({ foodId, qty, unit }) => [foodId, qty, unit])]);
 
@@ -219,4 +249,71 @@ test('saved meal item with a missing food is skipped with a warning', () => {
   assert.deepEqual(compact(result), [[1, [['milk', 100, 'ml']]]]);
   assert.equal(result.warnings.length, 1);
   assert.match(result.warnings[0].message, /Broken/);
+});
+
+
+test('servings use one item or scoop and the mass or volume default', () => {
+  for (const [text, id, qty] of [['3 servings weetbix', 'weetbix', 3], ['a serve whey', 'whey', 1], ['chicken breast two servings', 'chicken', 200], ['milk 2 serves', 'milk', 500]]) {
+    const result = parseDictation(text, foods);
+    assert.equal(result.meals[0].items[0].foodId, id);
+    assert.equal(result.meals[0].items[0].qty, qty);
+    assert.deepEqual(result.unmatched, []);
+  }
+});
+
+test('unit quantities reserve compatible neighbours before bare numbers', () => {
+  assert.deepEqual(compact(parseDictation('milk 2 scoops whey', foods)), [[1, [['milk', 250, 'ml'], ['whey', 2, 'scoop']]]]);
+  assert.deepEqual(compact(parseDictation('weetbix 3 chicken breast 120 grams', foods)), [[1, [['weetbix', 3, 'item'], ['chicken', 120, 'g']]]]);
+});
+
+test('comma full stop and and close items while allowing orphan amounts', () => {
+  for (const separator of [',', '.', 'and']) {
+    const result = parseDictation('chicken breast 120 grams ' + separator + ' rice 160 grams', foods);
+    assert.deepEqual(compact(result), [[1, [['chicken', 120, 'g'], ['rice', 160, 'g']]]]);
+  }
+  assert.equal(parseDictation('chicken breast. 120 grams.', foods).meals[0].items[0].qty, 120);
+});
+
+test('grams of a food binds forward across a preceding food', () => {
+  assert.deepEqual(compact(parseDictation('rice, 120 grams of chicken breast', foods)), [[1, [['rice', 100, 'g'], ['chicken', 120, 'g']]]]);
+});
+
+test('corrections replace an amount and repeated food', () => {
+  for (const correction of ['actually', 'no wait', 'sorry', 'scratch that']) {
+    assert.deepEqual(compact(parseDictation('rice 100 grams ' + correction + ' 150 grams', foods)), [[1, [['rice', 150, 'g']]]]);
+    assert.deepEqual(compact(parseDictation('3 weetbix ' + correction + ' 2 weetbix', foods)), [[1, [['weetbix', 2, 'item']]]]);
+  }
+});
+
+test('couple dozen and fractional number phrases', () => {
+  for (const [text, qty] of [['a couple of weetbix', 2], ['half a dozen weetbix', 6], ['a dozen weetbix', 12], ['half an weetbix', 0.5], ['one and a half weetbix', 1.5], ['one point five weetbix', 1.5]]) {
+    assert.equal(parseDictation(text, foods).meals[0].items[0].qty, qty, text);
+  }
+});
+
+test('adjacent aliases collapse to one mention', () => {
+  const result = parseDictation('whey protein 2 scoops', foods);
+  assert.deepEqual(compact(result), [[1, [['whey', 2, 'scoop']]]]);
+  assert.deepEqual(result.unmatched, []);
+});
+
+test('thousands commas and compound number words stay in one quantity', () => {
+  for (const text of ['1,000 ml milk', 'one thousand ml milk', 'a thousand ml milk']) {
+    assert.equal(parseDictation(text, foods).meals[0].items[0].qty, 1000);
+  }
+  assert.equal(parseDictation('one hundred and twenty five grams chicken breast', foods).meals[0].items[0].qty, 125);
+});
+
+test('close mis-hears and plurals preserve exact collision pairs', () => {
+  const catalogue = [...foods,
+    { id: 'cake', name: 'Rice cake', aliases: ['rice cake'], unit: 'item', defaultQty: 2 },
+    { id: 'bar', name: 'Tasti protein bar', aliases: ['protein bar', 'tasti bar'], unit: 'item', defaultQty: 1 },
+    { id: 'potato', name: 'Potato', aliases: ['potato'], unit: 'g', defaultQty: 200 },
+    { id: 'kumara', name: 'Sweet potato', aliases: ['sweet potato', 'kumara'], unit: 'g', defaultQty: 200 },
+  ];
+  for (const [text, ids] of [['rice and rice cakes', ['rice', 'cake']], ['protein and protein bars', ['whey', 'bar']], ['potato and sweet potato', ['potato', 'kumara']], ['weet bicks', ['weetbix']], ['kumera', ['kumara']], ['chicken breasts', ['chicken']], ['chicken breath', ['chicken']], ['tasty bar', ['bar']]]) {
+    const result = parseDictation(text, catalogue);
+    assert.deepEqual(result.meals[0].items.map(item => item.foodId), ids, text);
+    assert.deepEqual(result.unmatched, [], text);
+  }
 });

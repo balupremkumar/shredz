@@ -35,15 +35,15 @@ test('weight tab: edit and delete a past weigh-in', async ({ page }) => {
 test('goals saved in settings drive the diary summary', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(localDate()) });
   await page.getByRole('button', { name: 'Settings' }).click();
-  await page.getByRole('button', { name: 'Grams', exact: true }).click();
   await page.getByLabel('Protein g').fill('170');
   await page.getByLabel('Carbs g').fill('240');
   await page.getByLabel('Fat g').fill('65');
   await page.getByRole('button', { name: 'Save goals' }).click();
   await page.locator('.tabbar').getByRole('button', { name: 'Diary' }).click();
   // 170 x 4 + 240 x 4 + 65 x 9 = 2,225 kcal; 2,225 minus 839 eaten = 1,386 left.
-  await expect(page.locator('.summary')).toContainText('2,225');
-  await expect(page.locator('.summary')).toContainText('1,386');
+  const eq = page.locator('p[data-eaten]');
+  await expect(eq).toHaveAttribute('data-goal', '2,225');
+  await expect(eq).toHaveAttribute('data-left', '1,386');
   await expect(page.locator('.macros')).toContainText('/ 170');
 });
 

@@ -1,4 +1,4 @@
-const VERSION = '0.2.0'; // Must match APP_VERSION in src/version.js; enforced by tests.
+const VERSION = '2.0.0'; // Must match APP_VERSION in src/version.js; enforced by tests.
 const CACHE = 'macro-diary-' + VERSION;
 const FILES = [
   './',
@@ -18,6 +18,7 @@ const FILES = [
   './src/insights.js',
   './src/parser.js',
   './src/pwa.js',
+  './src/sheet-geometry.js',
   './src/store.js',
   './src/version.js',
   './src/ui/diary.js',
@@ -26,6 +27,7 @@ const FILES = [
   './src/ui/foods.js',
   './src/ui/settings.js',
   './src/ui/weight.js',
+  './src/ui/welcome.js',
 ];
 
 self.addEventListener('install', event => {

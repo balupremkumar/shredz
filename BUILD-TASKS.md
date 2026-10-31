@@ -67,3 +67,23 @@ After the first open it works with no signal (airplane mode).
 | Q13 | Larger text | Settings toggle that scales type about 15 percent, remembered on the phone | Codex Sol | screenshot at 375 px, no sideways scroll |
 
 Foods: Balu's 13 foods are ready in `private/macro-diary-foods.json` (git-ignored, never published); import with Settings, Import backup, Merge.
+
+## v2 overhaul (Balu's yes to mock/v2 on 31 Oct 2026)
+
+Decisions: STATE.md. Mock: mock/v2/index.html. Corpus: tests/fixtures/dictation-corpus.json. Nutrition: private/foods-research-v2.md.
+Builder rule for v2: Codex builds everything a command can check (Balu, 31 Oct: save Claude usage); Sonnet for E2E scripts, brief drafts and anything Codex is over its limit for; Opus preflights briefs, reviews diffs, runs the final tests.
+Rules locked for the parser: N servings = N units for item and scoop foods, N x defaultQty for g and ml foods; Weet-Bix stays 53 kcal (750 g box); green top stays Anchor Trim.
+
+| # | Wave | Task | Owns | Builder | Done when |
+|---|---|---|---|---|---|
+| V1 | 0 | Reproduce "Weet-Bix, 3 servings" failure in the dictate UI | e2e/tests/v2-repro.spec.mjs (new) | Sonnet | failing E2E that shows what Balu saw |
+| V2 | 1 | Parser v2: servings, separator-aware binding, unit compatibility, number words to thousands and halves, corrections, fuzzy names, plurals, one food per adjacent aliases, thousands comma | src/parser.js, tests/parser.test.mjs | Codex Sol | corpus "must" 100%, "should" 90%+, old parser tests green |
+| V3 | 1 | Design foundation: iOS grouped styles, light and dark from the phone setting, Kove mark plus Shredz wordmark header, Kove mark app icon, larger tap targets | styles.css, index.html, manifest.webmanifest, icons/ | Codex Sol | screenshot check against mock, no sideways scroll |
+| V4 | 1 | Goals grams per macro only (calories worked out); weekly report becomes one Averages row on Weight | src/ui/settings.js, src/ui/weight.js | Codex Sol | unit + E2E |
+| V5 | 2 | Keyboard-safe sheets: follow visualViewport, docked Save on the keyboard edge, page scroll locked while a sheet is open, autocomplete off on search and quantity fields | src/app.js, src/ui/dom.js | Codex Sol | E2E with a shrunken visual viewport keeps field and Save visible |
+| V6 | 2 | Speak sheet: big mic (speech recognition where it works, keyboard fallback), live "I heard" list, tap to fix, one sheet instead of dictate plus confirm | src/ui/dictate.js | Codex Sol | E2E: corpus sentences log correctly |
+| V7 | 3 | Diary: calorie ring hero, macro bars, floating Speak button, tap item opens quantity sheet, add-food sheet with search and dock, empty day | src/ui/diary.js | Codex Sol | E2E: log, fix, delete, copy |
+| V8 | 3 | Welcome: 3 steps on first open (goals, foods, try it) | src/ui/welcome.js (new) + app.js hook | Codex Sol | E2E first run |
+| V9 | 0 | Apply the 3 nutrition changes | private/macro-diary-foods.json | Opus | values match research v2 |
+| V10 | 4 | v2 E2E suite, design critique, reviewer pass | e2e/tests | Sonnet + Opus review | all green locally |
+| V11 | 5 | Release: bump APP_VERSION and sw.js VERSION, push after Balu's yes, rerun E2E live | src/version.js, sw.js | Opus | green on live |

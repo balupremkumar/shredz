@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shredz v2 mock</title>
+<style>
+@font-face{font-family:"Schibsted Grotesk";src:url("../../fonts/schibsted-grotesk-latin.woff2") format("woff2");font-weight:400 700;font-display:swap}
+/* iOS system colours, Kove accent. Light accent darkened for 4.5:1 on white. */
+.light{--bg:#F2F2F7;--cell:#FFFFFF;--cell-2:#E9E9EE;--sep:rgba(60,60,67,.18);--label:#111114;--sec:rgba(60,60,67,.66);--ter:rgba(60,60,67,.45);
+  --accent:#0A6FC2;--accent-soft:rgba(10,111,194,.14);--on-accent:#FFFFFF;--track:rgba(60,60,67,.10);--red:#D70015;--kbd:#D1D3D9;--key:#FFFFFF;--bar:rgba(249,249,251,.96)}
+.dark{--bg:#000000;--cell:#1C1C1E;--cell-2:#2C2C2E;--sep:rgba(84,84,88,.55);--label:#F2F2F7;--sec:rgba(235,235,245,.62);--ter:rgba(235,235,245,.38);
+  --accent:#43A6F5;--accent-soft:rgba(67,166,245,.18);--on-accent:#04101F;--track:rgba(235,235,245,.12);--red:#FF6961;--kbd:#2B2B2D;--key:#6B6B6E;--bar:rgba(22,22,24,.96)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#8E8E93;font-family:-apple-system,"SF Pro Text",system-ui,"Segoe UI",sans-serif;padding:24px 16px 48px;color:#111}
+h1.page{font:600 22px "Schibsted Grotesk",system-ui;color:#fff;margin:0 auto 4px;max-width:1700px}
+p.lede{color:#F2F2F7;max-width:1700px;margin:0 auto 20px;font-size:15px}
+.stage{display:flex;flex-wrap:wrap;gap:28px 24px;justify-content:center;max-width:1700px;margin:0 auto}
+figure{width:390px}
+figcaption{font-size:13px;line-height:1.4;color:#fff;margin-top:10px}
+figcaption b{display:block;font-size:15px;margin-bottom:2px}
+.phone{width:390px;height:844px;position:relative;overflow:hidden;background:var(--bg);color:var(--label);border-radius:44px;font-size:17px;line-height:1.3;font-variant-numeric:tabular-nums}
+.status{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 34px;font-weight:600;font-size:16px}
+.status i{font-style:normal;letter-spacing:2px;font-size:12px}
+.scroll{position:absolute;top:54px;left:0;right:0;bottom:0;overflow:hidden;padding:0 16px 140px}
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;height:44px}
+.brand{display:flex;align-items:center;gap:8px;font:600 21px/1 "Schibsted Grotesk",system-ui;letter-spacing:-.01em}
+.brand svg{width:26px;height:26px}
+.hbtn{font-size:17px;color:var(--accent)}
+.datebar{display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px}
+.datebar .d{font-size:28px;font-weight:600;letter-spacing:-.01em}
+.datebar .d small{display:block;font-size:15px;font-weight:400;color:var(--sec);letter-spacing:0;margin-top:2px}
+.arrows{display:flex;gap:4px}
+.arrows span{width:44px;height:44px;display:grid;place-items:center;color:var(--accent);font-size:24px}
+/* grouped list */
+.sec-h{font-size:13px;text-transform:uppercase;letter-spacing:.02em;color:var(--sec);margin:22px 16px 7px;display:flex;justify-content:space-between}
+.sec-h.big{font-size:20px;font-weight:600;text-transform:none;letter-spacing:-.01em;color:var(--label);margin:24px 4px 8px}
+.sec-h.big span{font-size:15px;font-weight:400;color:var(--sec)}
+.group{background:var(--cell);border-radius:10px;overflow:hidden}
+.row{display:flex;align-items:center;min-height:52px;padding:0 16px;position:relative;gap:12px}
+.row+.row::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+.row .main{flex:1;min-width:0}
+.row .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .s{font-size:15px;color:var(--sec);margin-top:1px}
+.row .v{text-align:right;color:var(--label)}
+.row .v small{display:block;font-size:13px;color:var(--sec)}
+.row .chev{color:var(--ter);font-size:20px}
+.row.act{color:var(--accent)}
+.row.tall{min-height:60px}
+.foot{font-size:13px;color:var(--sec);margin:7px 16px 0;line-height:1.35}
+/* summary */
+.summary{background:var(--cell);border-radius:10px;padding:18px 16px 16px;display:flex;gap:18px;align-items:center}
+.ring{width:150px;height:150px;position:relative;flex:none}
+.ring svg{width:150px;height:150px;transform:rotate(-90deg)}
+.ring .c{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .c b{font-size:34px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.ring .c span{font-size:13px;color:var(--sec);margin-top:4px}
+.macros{flex:1;display:grid;gap:12px}
+.m .top{display:flex;justify-content:space-between;font-size:15px}
+.m .top span{color:var(--sec)}
+.bar{height:6px;border-radius:3px;background:var(--track);margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.eq{font-size:13px;color:var(--sec);margin-top:10px;text-align:center}
+/* tab bar + mic */
+.tabs{position:absolute;left:0;right:0;bottom:0;height:83px;background:var(--bar);border-top:.5px solid var(--sep);display:flex;padding:7px 8px 0}
+.tabs div{flex:1;text-align:center;font-size:10px;font-weight:500;color:var(--ter)}
+.tabs div svg{width:26px;height:26px;display:block;margin:0 auto 3px;fill:currentColor}
+.tabs div.on{color:var(--accent)}
+.mic{position:absolute;right:18px;bottom:99px;width:76px;height:76px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 6px 18px rgba(0,0,0,.22);font-size:13px;font-weight:600}
+.mic svg{width:28px;height:28px;fill:currentColor}
+/* sheets */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:12px 12px 0 0;overflow:hidden}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--ter);margin:6px auto 0}
+.shdr{display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 16px}
+.shdr b{font-size:17px;font-weight:600}
+.shdr .hbtn.strong{font-weight:600}
+.search{margin:0 16px 8px;height:38px;border-radius:10px;background:var(--cell-2);display:flex;align-items:center;gap:6px;padding:0 10px;color:var(--sec)}
+.search span.q{color:var(--label)}
+.caret{display:inline-block;width:2px;height:20px;background:var(--accent);vertical-align:middle;margin-left:1px}
+/* keyboard */
+.kbd{position:absolute;left:0;right:0;bottom:0;height:336px;background:var(--kbd);padding:0 3px 0}
+.qt{height:44px;display:flex;align-items:center;justify-content:space-around;font-size:16px;color:var(--label)}
+.qt span+span{border-left:.5px solid var(--sep);}
+.keys{display:grid;gap:11px 6px;padding:8px 3px}
+.keys .r{display:flex;gap:6px;justify-content:center}
+.keys .k{height:42px;flex:1;max-width:33px;background:var(--key);border-radius:5px;display:grid;place-items:center;font-size:21px;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.keys.num .k{max-width:none;height:46px;font-size:24px}
+.keys .k.w{max-width:none;flex:5;font-size:16px}
+.keys .k.m{max-width:none;flex:1.6;font-size:15px;background:transparent;box-shadow:none}
+.dock{position:absolute;left:0;right:0;padding:10px 16px;background:var(--bg);border-top:.5px solid var(--sep);display:flex;gap:12px;align-items:center}
+.btn{flex:1;height:50px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:600;display:grid;place-items:center;font-size:17px}
+.btn.ghost{background:var(--cell);color:var(--accent);flex:none;padding:0 18px}
+.note{position:absolute;left:12px;right:12px;background:#FFD60A;color:#111;font:500 12px/1.35 -apple-system,system-ui;padding:6px 9px;border-radius:6px;z-index:5}
+/* dictation */
+.listen{text-align:center;padding:8px 24px 0}
+.bigmic{width:112px;height:112px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;margin:8px auto 12px;position:relative}
+.bigmic::after{content:"";position:absolute;inset:-12px;border-radius:50%;border:3px solid var(--accent-soft)}
+.bigmic svg{width:46px;height:46px;fill:currentColor}
+.listen .st{font-size:15px;color:var(--sec)}
+.live{font-size:20px;line-height:1.35;margin:14px 4px 0;text-align:left}
+.live em{font-style:normal;color:var(--sec)}
+.qty{min-width:76px;text-align:right}
+.unk .t{color:var(--red)}
+.bigqty{text-align:center;padding:12px 0 4px}
+.bigqty b{font-size:56px;font-weight:600;letter-spacing:-.02em}
+.bigqty span{font-size:22px;color:var(--sec);margin-left:6px}
+.step{display:flex;gap:6px;justify-content:center;margin:6px 0 0}
+.step i{width:28px;height:4px;border-radius:2px;background:var(--track)}
+.step i.on{background:var(--accent)}
+.welcome{padding:30px 24px 0;text-align:left}
+.welcome h2{font-size:28px;font-weight:600;letter-spacing:-.01em;margin:18px 0 8px}
+.welcome p{color:var(--sec);font-size:17px}
+.chart{background:var(--cell);border-radius:10px;padding:14px 16px}
+.chart .big{font-size:28px;font-weight:600}
+.chart .big small{font-size:15px;font-weight:400;color:var(--sec);margin-left:6px}
+.notes{max-width:1100px;margin:44px auto 0;background:#fff;border-radius:12px;padding:24px 28px;font-size:15px;line-height:1.5;color:#1c1c1e}
+.notes h2{font:600 20px "Schibsted Grotesk",system-ui;margin:22px 0 8px}
+.notes h2:first-child{margin-top:0}
+.notes table{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0}
+.notes td,.notes th{border-bottom:1px solid #e5e5ea;padding:6px 8px;text-align:left;vertical-align:top}
+.notes ul{padding-left:20px}
+</style>
+</head>
+<body>
+<h1 class="page">Shredz v2 mock</h1>
+<p class="lede">Static mock, not the app. Light screens first, then the same Diary and Dictation in dark (the app follows the iPhone setting). Yellow tags explain the fixes for the bugs you hit.</p>
+<div class="stage" id="stage"></div>
+
+<div class="notes">
+<h2>What changes from v0.2</h2>
+<ul>
+<li>Apple Health layout: inset grouped lists, one font size per job, 16 px side margin everywhere, every row 52 px or taller so fingers hit.</li>
+<li>The ring is the hero: calories left in the middle, protein, carbs and fat as three thin bars beside it.</li>
+<li>The big mic floats above the tab bar on Diary, bottom right in the thumb zone, labelled "Speak". One tap starts listening; it never needs the keyboard.</li>
+<li>Every sheet sizes itself to the space above the keyboard, keeps its Save button docked right above the keyboard, and scrolls its own list. The page behind never scrolls.</li>
+<li>Fixing an item is one tap on the row: a quantity sheet with a big number, the number keypad and the new calories. Swipe left still deletes.</li>
+<li>Goal modes go: goals are grams per macro, calories worked out. The weekly report moves to one "Averages" row at the bottom of Weight.</li>
+<li>Kove mark plus "Shredz" in the Kove typeface in the header; the Kove mark is the home-screen icon.</li>
+</ul>
+<h2>Keyboard bugs and the fix (all on add food, quantity and save)</h2>
+<table>
+<tr><th>What you saw</th><th>Cause</th><th>Fix in v2</th></tr>
+<tr><td>Search results jump to the top, bottom half unusable</td><td>Sheets are fixed to the full screen; iOS shrinks only the visible area when the keyboard opens and scrolls the page to the field</td><td>Sheets follow the visible area (iOS visualViewport): top under the status bar, bottom on the keyboard. The list scrolls inside the sheet.</td></tr>
+<tr><td>Password and payment AutoFill bar above the keyboard</td><td>Safari guesses the field is a login or card field</td><td>Search and quantity fields marked as plain search and number fields with autofill off. Honest limit: the small up, down and Done bar is iOS and a web app cannot remove it; the Passwords and card suggestions should go.</td></tr>
+<tr><td>Quantity box off screen, Save off screen</td><td>Same fixed sheet; the button sits under the keyboard</td><td>Quantity sheet is short and sits on the keyboard; Save is docked on the keyboard edge, always visible.</td></tr>
+<tr><td>Hard to scroll back to the top</td><td>Page and sheet both scroll, so touches go to the wrong one</td><td>Only one thing scrolls at a time; the page is locked while a sheet is open. Tap the status bar to jump to top on the Diary.</td></tr>
+</table>
+<h2>Reference teardown (from knowledge, not fresh screenshots)</h2>
+<table>
+<tr><th>Reference</th><th>Eye path</th><th>Primary action</th><th>Steal</th></tr>
+<tr><td>Apple Health Summary</td><td>Large title, pinned metric, then grouped rows</td><td>Tap a metric to drill in</td><td>Grouped lists, 16 px margins, quiet type, one accent</td></tr>
+<tr><td>Apple Fitness rings</td><td>Ring, number in or beside it, then detail</td><td>None on screen; the ring is status</td><td>Ring as the one-glance answer</td></tr>
+<tr><td>MyFitnessPal diary</td><td>Remaining equation, then meals</td><td>Add food per meal</td><td>"Goal minus food equals left" line; meal subtotal in the header</td></tr>
+</table>
+<p>Convention: one status at the top, meals as grouped sections, add action always reachable. Deviation: the add action is a voice button, not "Add food" per meal, because speaking is your main way in; tap-to-add stays inside each meal and in the mic sheet as "Type instead".</p>
+<h2>Welcome flow (first open only)</h2>
+<table>
+<tr><th>Step</th><th>Action</th><th>Job</th><th>Exit</th></tr>
+<tr><td>1 Goals</td><td>Check 2,400 kcal and protein, carbs, fat in grams; Next</td><td>Small yes; numbers you can trust</td><td>Skip keeps defaults, editable in Settings</td></tr>
+<tr><td>2 Foods</td><td>See your 13 foods with calories; Next</td><td>Reduces doubt about the numbers before you log</td><td>Skip; Foods tab later</td></tr>
+<tr><td>3 Try it</td><td>Tap the mic, say "two Weet-Bix and 200 mils of milk", see it parse; Done (nothing saved)</td><td>First value: dictation working in 10 seconds; asks for the mic in context</td><td>Skip; mic is on the Diary</td></tr>
+</table>
+<h2>States covered per screen</h2>
+<p>Diary: empty day (shown), full day (shown), first open (welcome). Dictation: listening (shown), not recognised word (shown, red with "Add"), mic blocked or unsupported (falls back to the keyboard box with the keyboard mic hint), nothing heard ("Didn't catch that, try again"). Add food: results (shown), no match ("No food called 'banan', add it?"). Weight: no entries yet ("Log your first morning weight"). Loading is not shown: everything is on the phone and opens instantly.</p>
+<h2>Deliberate exceptions to your ban list</h2>
+<p>Rounded corners on grouped lists, sheets and the round mic: this is the iOS look you picked; no gradients, glass, glow, pills, chips or outline icons. Body text is the iPhone system font (SF) so it feels native; Schibsted Grotesk is used only for the Shredz wordmark.</p>
+</div>
+
+<script>
+const ICON = {
+  mic:'<svg viewBox="0 0 24 24"><path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V5.5a3.5 3.5 0 1 0-7 0V11a3.5 3.5 0 0 0 3.5 3.5Zm6-3.5a1 1 0 1 0-2 0 4 4 0 0 1-8 0 1 1 0 1 0-2 0 6 6 0 0 0 5 5.91V19H8.5a1 1 0 1 0 0 2h7a1 1 0 1 0 0-2H13v-2.09A6 6 0 0 0 18 11Z"/></svg>',
+  diary:'<svg viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm3 4v2h7V7H9Zm0 4v2h7v-2H9Z"/></svg>',
+  weight:'<svg viewBox="0 0 24 24"><path d="M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Zm5 3a5 5 0 0 0-4.6 3h2.3l1.7-1.6.9.9L11.4 10H16.6A5 5 0 0 0 12 7Z"/></svg>',
+  foods:'<svg viewBox="0 0 24 24"><path d="M5 6h14v3H5V6Zm0 5h14v3H5v-3Zm0 5h9v3H5v-3Z"/></svg>',
+  settings:'<svg viewBox="0 0 24 24"><path d="M10.5 2h3l.5 2.6 1.9.8 2.2-1.5 2.1 2.1-1.5 2.2.8 1.9 2.5.4v3l-2.6.5-.8 1.9 1.5 2.2-2.1 2.1-2.2-1.5-1.9.8-.4 2.5h-3l-.5-2.6-1.9-.8-2.2 1.5-2.1-2.1 1.5-2.2-.8-1.9L2 13.5v-3l2.6-.5.8-1.9-1.5-2.2L6 3.8l2.2 1.5 1.9-.8L10.5 2ZM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>',
+  kove:'<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="46" stroke="currentColor" stroke-width="12" opacity=".32" fill="none"/><circle cx="60" cy="60" r="28" stroke="currentColor" stroke-width="12" opacity=".62" fill="none"/><circle cx="60" cy="60" r="13" fill="currentColor"/></svg>'
+};
+const status = '<div class="status"><span>7:42</span><i>●●● ▮</i></div>';
+const brand = `<div class="hdr"><div class="brand" style="color:var(--label)"><span style="color:var(--accent)">${ICON.kove}</span>Shredz</div></div>`;
+const tabs = on => `<div class="tabs">${[['Diary','diary'],['Weight','weight'],['Foods','foods'],['Settings','settings']].map(([n,i])=>`<div class="${n===on?'on':''}">${ICON[i]}${n}</div>`).join('')}</div>`;
+const mic = `<div class="mic">${ICON.mic}Speak</div>`;
+const ring = (pct, left) => { const r=66, c=2*Math.PI*r; return `<div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="${r}" stroke="var(--track)" stroke-width="14" fill="none"/><circle cx="75" cy="75" r="${r}" stroke="var(--accent)" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="${c*pct} ${c}" opacity="${pct>0?1:0}"/></svg><div class="c"><b>${left}</b><span>kcal left</span></div></div>`; };
+const macro = (n, v, g) => `<div class="m"><div class="top">${n}<span>${v} / ${g} g</span></div><div class="bar"><i style="width:${Math.min(100,v/g*100)}%"></i></div></div>`;
+const row = (t, s, v, vs, cls='') => `<div class="row ${cls}"><div class="main"><div class="t">${t}</div>${s?`<div class="s">${s}</div>`:''}</div>${v!=null?`<div class="v">${v}${vs?`<small>${vs}</small>`:''}</div>`:''}</div>`;
+const keyboard = (num) => num
+  ? `<div class="kbd" style="height:291px"><div class="qt"><span style="color:var(--sec);font-size:13px">No AutoFill bar</span></div><div class="keys num">${[['1','2','3'],['4','5','6'],['7','8','9'],['.','0','⌫']].map(r=>`<div class="r">${r.map(k=>`<div class="k">${k}</div>`).join('')}</div>`).join('')}</div></div>`
+  : `<div class="kbd"><div class="qt"><span>chicken</span><span>chickpeas</span><span>children</span></div><div class="keys">${['qwertyuiop','asdfghjkl','zxcvbnm'].map(r=>`<div class="r">${[...r].map(k=>`<div class="k">${k}</div>`).join('')}</div>`).join('')}<div class="r"><div class="k m">123</div><div class="k m">🎤</div><div class="k w">space</div><div class="k m">search</div></div></div></div>`;
+
+const S = {
+diary: () => `${status}<div class="scroll">${brand}
+  <div class="datebar"><div class="d">Today<small>Saturday 31 October</small></div><div class="arrows"><span>‹</span><span style="color:var(--ter)">›</span></div></div>
+  <div class="summary">${ring(884/2400,'1,516')}<div class="macros">${macro('Protein',90,180)}${macro('Carbs',88,240)}${macro('Fat',17,80)}</div></div>
+  <div class="eq">2,400 goal − 884 eaten = 1,516 left</div>
+  <div class="sec-h" style="margin-top:18px"><span>Morning weight</span></div>
+  <div class="group">${row('82.4 kg','−0.6 kg this week',null)}</div>
+  <div class="sec-h big">Meal 1 <span>365 kcal · 38 g protein</span></div>
+  <div class="group">${row('Weet-Bix','3 biscuits','159','5 g protein')}${row('Green top milk','200 ml','74','8 g protein')}${row('Scorpion whey','1 scoop','132','25 g protein')}</div>
+  <div class="sec-h big">Meal 2 <span>519 kcal · 52 g protein</span></div>
+  <div class="group">${row('Chicken breast','150 g','212','44 g protein')}${row('Basmati rice','150 g','192','5 g protein')}</div>
+  </div>${mic}${tabs('Diary')}`,
+
+empty: () => `${status}<div class="scroll">${brand}
+  <div class="datebar"><div class="d">Today<small>Sunday 1 November</small></div><div class="arrows"><span>‹</span><span style="color:var(--ter)">›</span></div></div>
+  <div class="summary">${ring(0,'2,400')}<div class="macros">${macro('Protein',0,180)}${macro('Carbs',0,240)}${macro('Fat',0,80)}</div></div>
+  <div class="sec-h" style="margin-top:22px"><span>Morning weight</span></div>
+  <div class="group"><div class="row"><div class="main"><div class="t" style="color:var(--sec)">82.4</div></div><div class="hbtn" style="font-weight:600">Log kg</div></div></div>
+  <div class="foot">Prefilled with yesterday's weight. Tap to change, then Log.</div>
+  <div class="sec-h big">Nothing logged yet</div>
+  <div class="group">${row('Tap Speak and say a meal','"Meal one, two Weet-Bix and 200 mils of milk"',null,null)}${row('Copy yesterday','5 items · 884 kcal',null,null,'act')}${row('Add food by hand','',null,null,'act')}</div>
+  </div>${mic}${tabs('Diary')}`,
+
+dictate: () => `${status}<div class="dim"></div><div class="sheet" style="top:54px"><div class="grab"></div>
+  <div class="shdr"><span class="hbtn">Cancel</span><b>Meal 1</b><span class="hbtn">Meal 2 ›</span></div>
+  <div class="listen"><div class="bigmic">${ICON.mic}</div><div class="st">Listening. Tap to stop.</div>
+  <div class="live">Weet-Bix, 3 servings. Chicken breast, 100 grams, <em>and a banana…</em></div></div>
+  <div class="sec-h"><span>I heard</span><span>300 kcal</span></div>
+  <div style="padding:0 16px"><div class="group">${row('Weet-Bix','3 biscuits','159','5 g protein')}${row('Chicken breast','100 g','141','29 g protein')}<div class="row unk"><div class="main"><div class="t">banana</div><div class="s">Not in your foods</div></div><div class="hbtn">Add</div></div></div>
+  <div class="foot">Tap an item to fix it. Say "meal two" to switch meals, "save" to finish.</div></div>
+  <div class="dock" style="bottom:0;padding-bottom:30px"><div class="btn ghost">Type instead</div><div class="btn">Save 2 items</div></div></div>`,
+
+add: () => `${status}<div class="dim"></div><div class="sheet" style="top:54px;bottom:336px;border-radius:12px 12px 0 0"><div class="grab"></div>
+  <div class="shdr"><span class="hbtn">Cancel</span><b>Add to Meal 2</b><span style="width:52px"></span></div>
+  <div class="search">⌕ <span class="q">chick</span><span class="caret"></span></div>
+  <div style="padding:0 16px"><div class="group">
+    <div class="row tall" style="background:var(--accent-soft)"><div class="main"><div class="t">Chicken breast (cooked)</div><div class="s">141 kcal per 100 g</div></div><div class="v" style="font-weight:600">150 g</div></div>
+    ${row('Chickpeas','Not in your foods, add it',null,null,'act')}
+  </div><div class="sec-h" style="margin-left:16px"><span>Recent</span></div><div class="group">${row('Basmati rice (cooked)','128 kcal per 100 g',null,null)}${row('Cashews (roasted)','576 kcal per 100 g',null,null)}</div></div>
+  <div class="dock" style="bottom:0"><div class="main" style="flex:1"><div style="font-weight:600">Chicken breast, 150 g</div><div style="font-size:15px;color:var(--sec)">212 kcal · 44 g protein</div></div><div class="btn" style="flex:none;width:120px">Add</div></div></div>
+  ${keyboard(false)}
+  <div class="note" style="top:640px">Sheet ends at the keyboard; Add is docked on it. List scrolls inside. Passwords and card AutoFill switched off.</div>`,
+
+qty: () => `${status}<div class="dim"></div><div class="sheet" style="bottom:291px;border-radius:12px 12px 0 0"><div class="grab"></div>
+  <div class="shdr"><span class="hbtn">Cancel</span><b>Scorpion whey</b><span class="hbtn strong">Save</span></div>
+  <div class="bigqty"><b>1.5<span class="caret" style="height:44px"></span></b><span>scoops</span></div>
+  <div style="text-align:center;color:var(--sec);font-size:15px;padding-bottom:14px">198 kcal · 37.5 g protein · 3.9 g carbs · 3.3 g fat</div>
+  <div style="padding:0 16px 12px;display:flex;gap:8px">${['0.5','1','2','3'].map(v=>`<div style="flex:1;height:44px;border-radius:10px;background:var(--cell);display:grid;place-items:center;color:var(--accent)">${v}</div>`).join('')}</div>
+  <div style="padding:0 16px 14px"><div class="group"><div class="row" style="color:var(--red);justify-content:center">Remove from Meal 1</div></div></div></div>
+  ${keyboard(true)}
+  <div class="note" style="top:150px">Short sheet sits on the number keypad. Save top right, never hidden.</div>`,
+
+w1: () => `${status}<div class="welcome"><div class="step"><i class="on"></i><i></i><i></i></div>
+  <div style="text-align:center;margin-top:26px;color:var(--accent)"><span style="display:inline-block;width:64px;height:64px">${ICON.kove}</span></div>
+  <h2>Your daily goals</h2><p>Shredz keeps everything on this phone. Start with the numbers you're aiming for.</p></div>
+  <div style="padding:22px 16px 0"><div class="group">${row('Calories',null,'2,400','worked out')}${row('Protein',null,'180 g')}${row('Carbs',null,'240 g')}${row('Fat',null,'80 g')}</div>
+  <div class="foot">Change any time in Settings.</div></div>
+  <div class="dock" style="bottom:0;padding-bottom:34px;border:0"><div class="btn ghost" style="background:transparent">Skip</div><div class="btn">Next</div></div>`,
+
+w2: () => `${status}<div class="welcome"><div class="step"><i class="on"></i><i class="on"></i><i></i></div>
+  <h2>Your foods</h2><p>13 foods, checked against NZ labels and FOODfiles. Tap any to adjust.</p></div>
+  <div style="padding:18px 16px 0"><div class="group">${row('Weet-Bix','1 biscuit','53',null)}${row('Chicken breast (cooked)','100 g','141',null)}${row('Basmati rice (cooked)','100 g','128',null)}${row('Green top milk','100 ml','37',null)}${row('Scorpion whey','1 scoop','132',null)}${row('Egg (size 7)','1 egg','77',null)}${row('8 more','',null,null,'act')}</div></div>
+  <div class="dock" style="bottom:0;padding-bottom:34px;border:0"><div class="btn ghost" style="background:transparent">Back</div><div class="btn">Next</div></div>`,
+
+w3: () => `${status}<div class="welcome" style="text-align:center"><div class="step"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+  <h2>Try saying a meal</h2><p>Tap the mic and say:<br><span style="color:var(--label)">"Two Weet-Bix and 200 mils of milk"</span></p>
+  <div class="bigmic" style="margin-top:36px">${ICON.mic}</div><div class="st" style="color:var(--sec);font-size:15px">Practice only, nothing is saved</div></div>
+  <div style="padding:22px 16px 0"><div class="group">${row('Weet-Bix','2 biscuits','106',null)}${row('Green top milk','200 ml','74',null)}</div></div>
+  <div class="dock" style="bottom:0;padding-bottom:34px;border:0"><div class="btn">Start logging</div></div>`,
+
+weight: () => `${status}<div class="scroll">${brand}
+  <div class="datebar"><div class="d">Weight<small>Last 30 days</small></div></div>
+  <div class="chart"><div class="big">82.4 kg<small>−0.6 kg this week</small></div>
+  <svg viewBox="0 0 326 140" style="width:100%;margin-top:10px"><g stroke="var(--sep)" stroke-width="1"><line x1="0" y1="20" x2="326" y2="20"/><line x1="0" y1="70" x2="326" y2="70"/><line x1="0" y1="120" x2="326" y2="120"/></g>
+  <polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="4,34 40,38 76,45 112,48 148,58 184,62 220,70 256,80 292,86 322,94"/>
+  ${[[4,28],[22,40],[40,36],[58,48],[76,42],[94,52],[112,46],[130,60],[148,55],[166,66],[184,59],[202,70],[220,68],[238,82],[256,76],[274,88],[292,84],[310,96],[322,92]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3" fill="var(--sec)"/>`).join('')}
+  <g fill="var(--sec)" font-size="11"><text x="0" y="138">2 Oct</text><text x="290" y="138">31 Oct</text></g></svg>
+  <div style="font-size:13px;color:var(--sec)">Dots are mornings, line is the 7-day average.</div></div>
+  <div class="sec-h"><span>Recent</span></div>
+  <div class="group">${row('Today','',"82.4 kg",'−0.2')}${row('Yesterday','',"82.6 kg",'−0.1')}${row('Thu 29 Oct','',"82.7 kg",'−0.3')}</div>
+  <div class="sec-h"><span>Averages</span></div>
+  <div class="group">${row('7 and 30 day averages','Calories, macros, weight change',null,null)}</div>
+  </div>${tabs('Weight')}`
+};
+
+const frames = [
+  ['diary','light','Diary, full day','Ring answers "how much is left" at a glance. Macros beside it, meals below as grouped lists. Big Speak button bottom right.'],
+  ['dictate','light','Speak sheet','Opens listening straight away. Words appear as you talk; "I heard" turns them into items with calories. Unknown words go red with Add. Save docked at the bottom.'],
+  ['add','light','Add food, keyboard up','Fixes the jump and hidden-button bugs: the sheet stops at the keyboard, search stays at the top, picking a food shows it in the dock with Add.'],
+  ['qty','light','Fix an item, number keypad up','Tap any item. Big number, live calories, quick amounts, remove. Sits on the keypad so nothing is off screen.'],
+  ['empty','light','Diary, empty day','Weight prefilled for one-tap log. Three ways to start: speak, copy yesterday, add by hand.'],
+  ['weight','light','Weight','30-day chart with the 7-day average line. Weekly report folded into one Averages row.'],
+  ['w1','light','Welcome 1 of 3: goals','Grams per macro, calories worked out. Skip keeps the defaults.'],
+  ['w2','light','Welcome 2 of 3: foods','Shows your checked foods so you trust the numbers before logging.'],
+  ['w3','light','Welcome 3 of 3: try it','Mic permission asked here, in context. Practice only.'],
+  ['diary','dark','Diary, dark','Same screen when the iPhone is in dark mode.'],
+  ['dictate','dark','Speak sheet, dark',''],
+  ['add','dark','Add food, dark','']
+];
+document.getElementById('stage').innerHTML = frames.map(([k,t,cap,desc]) => `<figure><div class="phone ${t}">${S[k]()}</div><figcaption><b>${cap}</b>${desc}</figcaption></figure>`).join('');
+</script>
+</body>
+</html>

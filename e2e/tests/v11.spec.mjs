@@ -3,15 +3,23 @@ import { openApp, FOODS, localDate, usualDay, expectFood, expectNoSideScroll } f
 
 const today = localDate();
 
-test('plus and minus step an item and never go below one step', async ({ page }) => {
+test('quantity sheet: rejects zero, then sets exact amounts and the totals follow', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(today) });
-  await page.getByRole('button', { name: 'More Weet-Bix' }).click();
+  await page.locator('main .row', { hasText: 'Weet-Bix' }).click();
+  await page.getByLabel('Quantity in item').fill('0');
+  await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
+  await expect(page.locator('.sheet .problem-line:not([hidden])')).toContainText('greater than 0');
+  await expectFood(page, '839');
+  await page.getByLabel('Quantity in item').fill('3');
+  await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
   await expectFood(page, '894');
-  await page.getByRole('button', { name: 'Less Weet-Bix' }).click();
-  await page.getByRole('button', { name: 'Less Weet-Bix' }).click();
-  await page.getByRole('button', { name: 'Less Weet-Bix' }).click();
+  await page.locator('main .row', { hasText: 'Weet-Bix' }).click();
+  await page.getByLabel('Quantity in item').fill('1');
+  await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
   await expectFood(page, '784');
-  await page.getByRole('button', { name: 'More Chicken breast' }).click();
+  await page.locator('main .row', { hasText: 'Chicken breast' }).click();
+  await page.getByLabel('Quantity in g').fill('150');
+  await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
   await expectFood(page, '826');
 });
 
@@ -43,29 +51,28 @@ test('save a meal, then add it to another day from Add food first', async ({ pag
   await expectFood(page, '322');
 });
 
-test('dictating a saved meal name logs its items', async ({ page }) => {
+test('speaking a saved meal name lists its items and Save logs them', async ({ page }) => {
   await openApp(page, { foods: FOODS, savedMeals: [{ id: 'sm1', name: 'Usual breakfast', aliases: [], items: [{ foodId: 'wb', qty: 2 }, { foodId: 'gm', qty: 200 }, { foodId: 'wp', qty: 1 }] }] });
-  await page.getByRole('button', { name: /Dictate/ }).click();
-  await page.getByLabel('What you ate').pressSequentially('Meal one, usual breakfast. Save.');
+  await page.getByRole('button', { name: 'Speak' }).click();
+  await page.getByLabel('What you ate').fill('Meal one, usual breakfast.');
   await expect(page.locator('.sheet')).toContainText('from Usual breakfast');
-  await page.locator('.sheet').getByRole('button', { name: /Add 322 kcal/ }).click();
+  await page.locator('.sheet').getByRole('button', { name: 'Save 3 items' }).click();
   await expectFood(page, '322');
 });
 
 test('learn an unrecognised word as another name for a food', async ({ page }) => {
   await openApp(page, { foods: FOODS });
-  await page.getByRole('button', { name: /Dictate/ }).click();
+  await page.getByRole('button', { name: 'Speak' }).click();
   await page.getByLabel('What you ate').fill('2 wheaties');
-  await page.locator('.sheet').getByRole('button', { name: 'Save' }).click();
   await page.getByRole('button', { name: 'This is...' }).click();
   await page.getByLabel(/Which food is/).selectOption({ label: 'Weet-Bix' });
   await page.getByRole('button', { name: 'Learn' }).click();
   await expect(page.locator('.row--problem')).toHaveCount(0);
-  await page.locator('.sheet').getByRole('button', { name: /Add 110 kcal/ }).click();
+  await page.locator('.sheet').getByRole('button', { name: 'Save 1 item' }).click();
   await expectFood(page, '110');
-  await page.getByRole('button', { name: /Dictate/ }).click();
+  await page.getByRole('button', { name: 'Speak' }).click();
   await page.getByLabel('What you ate').fill('3 wheaties');
-  await expect(page.locator('.live-line')).toContainText('165 kcal');
+  await expect(page.locator('.sheet')).toContainText('165 kcal');
 });
 
 test('copy this day to another date', async ({ page }) => {
@@ -77,23 +84,23 @@ test('copy this day to another date', async ({ page }) => {
   await expectFood(page, '839');
 });
 
-test('goal modes: calories and % split, then grams', async ({ page }) => {
+test('goals are grams per macro: calories are worked out, bad input is refused, saved goals drive the diary', async ({ page }) => {
   await openApp(page, { foods: FOODS, entries: usualDay(today) });
   await page.getByRole('button', { name: 'Settings' }).click();
-  await page.getByRole('button', { name: 'Calories and %' }).click();
-  await page.getByLabel(/^Calories/).fill('2400');
-  await page.getByLabel(/Protein %/).fill('30');
-  await page.getByLabel(/Carbs %/).fill('40');
-  await page.getByLabel(/Fat %/).fill('31');
+  await expect(page.getByRole('button', { name: 'Calories and %' })).toHaveCount(0);
+  await page.getByLabel('Protein g').fill('abc');
+  await page.getByRole('button', { name: 'Save goals' }).click();
   await expect(page.locator('main .problem-line:not([hidden])')).toBeVisible();
-  await page.getByLabel(/Fat %/).fill('30');
-  await expect(page.locator('main')).toContainText('180 g protein, 240 g carbs, 80 g fat');
+  await page.getByLabel('Protein g').fill('180');
+  await page.getByLabel('Carbs g').fill('240');
+  await page.getByLabel('Fat g').fill('80');
+  await expect(page.locator('main')).toContainText('Calories (worked out): 2,400 kcal');
   await page.getByRole('button', { name: 'Save goals' }).click();
   await page.locator('.tabbar').getByRole('button', { name: 'Diary' }).click();
   await expect(page.locator('.macros')).toContainText('/ 240');
+  await expect(page.locator('p[data-eaten]')).toHaveAttribute('data-goal', '2,400');
   await page.getByRole('button', { name: 'Settings' }).click();
-  await page.getByRole('button', { name: 'Grams', exact: true }).click();
-  await page.getByLabel(/Protein \(?g/).fill('200');
+  await page.getByLabel('Protein g').fill('200');
   await expect(page.locator('main')).toContainText('2,480 kcal');
 });
 
@@ -115,13 +122,19 @@ test('CSV exports and larger text', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-text', 'large');
 });
 
-test('weight tab shows the report and the 7-day average line', async ({ page }) => {
+test('weight tab: one averages row opens the 7 and 30 day report, plus the average line', async ({ page }) => {
   const weights = [-20, -14, -7, -3, -1, 0].map((o, i) => ({ date: localDate(o), kg: [84, 83.6, 83.1, 82.8, 82.6, 82.4][i] }));
   await openApp(page, { foods: FOODS, entries: [...usualDay(today), ...usualDay(localDate(-1), 'y')], weights });
   await page.locator('.tabbar').getByRole('button', { name: 'Weight' }).click();
-  await expect(page.locator('main')).toContainText('7 days');
-  await expect(page.locator('main')).toContainText('30 days');
-  await expect(page.locator('main')).toContainText('2 of 7 days logged');
+  const toggle = page.getByRole('button', { name: '7 and 30 day averages' });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#weight-averages')).toBeHidden();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  const panel = page.locator('#weight-averages');
+  await expect(panel).toContainText('7 days');
+  await expect(panel).toContainText('30 days');
+  await expect(panel).toContainText('2 of 7 days logged');
   await expect(page.locator('.chart svg polyline')).toHaveCount(2);
   await expect(page.locator('main')).toContainText('7-day average');
 });

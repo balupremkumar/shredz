@@ -1,5 +1,6 @@
 import { h } from './dom.js';
-import { parseNumber, formatKcal, formatMacro } from '../format.js';
+import { parseNumber, formatKcal } from '../format.js';
+import { kcalFromGrams } from '../insights.js';
 import { APP_VERSION } from '../version.js';
 
 function button(text, className, click) {
@@ -80,116 +81,60 @@ function chooseBackup(app) {
   picker.click();
 }
 
-const wholeNumber = n => formatMacro(n).replace(/\.0$/, '');
-
 function goalsSection(app, settings) {
-  let mode = settings.goalMode === 'grams' ? 'grams' : 'percent';
   const goals = settings.goals;
-  const split = settings.split || {};
-  const defs = {
-    percent: [['kcal', 'Calories (kcal)', goals.kcal], ['protein', 'Protein %', split.protein],
-      ['carbs', 'Carbs %', split.carbs], ['fat', 'Fat %', split.fat]],
-    grams: [['protein', 'Protein g', goals.protein], ['carbs', 'Carbs g', goals.carbs],
-      ['fat', 'Fat g', goals.fat]],
-  };
-  const inputs = { percent: {}, grams: {} };
-  const panels = {};
-  const pills = {};
+  const defs = [['protein', 'Protein g', goals.protein], ['carbs', 'Carbs g', goals.carbs],
+    ['fat', 'Fat g', goals.fat]];
+  const inputs = {};
   const problem = h('p', { class: 'problem-line', attrs: { id: 'goals-problem', role: 'alert', hidden: true } });
-  const percentLine = h('p', { class: 'muted' });
-  const totalLine = h('p', { class: 'muted' });
-  const gramsLine = h('p', { class: 'muted' });
+  const caloriesLine = h('p', { class: 'muted', attrs: { 'aria-live': 'polite' } });
 
-  const read = (m, key) => {
-    const value = parseNumber(inputs[m][key].value);
+  const read = key => {
+    const value = parseNumber(inputs[key].value);
     return value === null || value < 0 ? null : value;
   };
   const refresh = () => {
-    const kcal = read('percent', 'kcal');
-    const p = read('percent', 'protein');
-    const c = read('percent', 'carbs');
-    const f = read('percent', 'fat');
-    const grams = (pct, per) => (kcal === null || pct === null ? '?' : formatKcal(kcal * pct / 100 / per));
-    percentLine.textContent = `= ${grams(p, 4)} g protein, ${grams(c, 4)} g carbs, ${grams(f, 9)} g fat`;
-    const sum = p === null || c === null || f === null ? null : p + c + f;
-    totalLine.textContent = `Total ${sum === null ? '?' : wholeNumber(sum)}%`;
-    totalLine.className = sum !== null && Math.abs(sum - 100) < 1e-9 ? 'muted' : 'problem-line';
-    const gp = read('grams', 'protein');
-    const gc = read('grams', 'carbs');
-    const gf = read('grams', 'fat');
-    if (gp === null || gc === null || gf === null) {
-      gramsLine.textContent = '= ? kcal';
-    } else {
-      const total = gp * 4 + gc * 4 + gf * 9;
-      const pct = kcal4 => (total > 0 ? Math.round(kcal4 / total * 100) : 0);
-      gramsLine.textContent = `= ${formatKcal(total)} kcal (${pct(gp * 4)}% / ${pct(gc * 4)}% / ${pct(gf * 9)}%)`;
-    }
+    const protein = read('protein');
+    const carbs = read('carbs');
+    const fat = read('fat');
+    const kcal = protein === null || carbs === null || fat === null
+      ? '?' : formatKcal(kcalFromGrams({ protein, carbs, fat }));
+    caloriesLine.textContent = `Calories (worked out): ${kcal} kcal`;
   };
 
-  for (const m of ['percent', 'grams']) {
-    panels[m] = h('div', { attrs: { hidden: m !== mode } },
-      defs[m].map(([key, label, value]) => {
-        const input = h('input', { class: 'input', attrs: {
-          id: `goal-${m}-${key}`, type: 'text', inputmode: m === 'percent' && key !== 'kcal' ? 'numeric' : 'decimal',
-          enterkeyhint: 'done', value: value ?? '', 'aria-describedby': 'goals-problem',
-        }, on: { input: refresh } });
-        inputs[m][key] = input;
-        return h('div', { class: 'field' },
-          h('label', { class: 'field__label', text: label, attrs: { for: `goal-${m}-${key}` } }), input);
-      }),
-      m === 'percent' ? [percentLine, totalLine] : gramsLine);
-  }
-
-  const setMode = next => {
-    mode = next;
-    problem.hidden = true;
-    for (const m of ['percent', 'grams']) {
-      panels[m].hidden = m !== mode;
-      pills[m].className = m === mode ? 'pill pill--primary' : 'pill pill--secondary';
-      pills[m].setAttribute('aria-pressed', String(m === mode));
-    }
-  };
-  for (const [m, label] of [['percent', 'Calories and %'], ['grams', 'Grams']]) {
-    pills[m] = h('button', {
-      class: m === mode ? 'pill pill--primary' : 'pill pill--secondary', text: label,
-      attrs: { type: 'button', 'aria-pressed': String(m === mode) }, on: { click: () => setMode(m) },
-    });
-  }
+  const fields = defs.map(([key, label, value]) => {
+    const input = h('input', { class: 'input', attrs: {
+      id: `goal-grams-${key}`, type: 'text', inputmode: 'decimal', autocomplete: 'off',
+      enterkeyhint: 'done', value: value ?? '', 'aria-describedby': 'goals-problem',
+    }, on: { input: refresh } });
+    inputs[key] = input;
+    return h('div', { class: 'field' },
+      h('label', { class: 'field__label', text: label, attrs: { for: `goal-grams-${key}` } }), input);
+  });
 
   const save = h('button', {
     class: 'pill pill--primary pill--block', text: 'Save goals', attrs: { type: 'submit' },
   });
   const fail = (key, message) => {
-    inputs[mode][key].setAttribute('aria-invalid', 'true');
+    inputs[key].setAttribute('aria-invalid', 'true');
     problem.textContent = message;
     problem.hidden = false;
-    inputs[mode][key].focus();
+    inputs[key].focus();
   };
   const form = h('form', { on: { submit: async event => {
     event.preventDefault();
     if (save.disabled) return;
     const next = {};
-    for (const [key, label] of defs[mode]) {
-      const value = read(mode, key);
-      inputs[mode][key].setAttribute('aria-invalid', String(value === null));
+    for (const [key, label] of defs) {
+      const value = read(key);
+      inputs[key].setAttribute('aria-invalid', String(value === null));
       if (value === null) {
         fail(key, `${label}: enter zero or a positive number.`);
         return;
       }
       next[key] = value;
     }
-    let input;
-    if (mode === 'percent') {
-      const sum = next.protein + next.carbs + next.fat;
-      if (Math.abs(sum - 100) > 1e-9) {
-        fail('protein', `Percentages add up to ${wholeNumber(sum)}, not 100.`);
-        return;
-      }
-      input = { goalMode: 'percent', kcal: next.kcal,
-        split: { protein: next.protein, carbs: next.carbs, fat: next.fat } };
-    } else {
-      input = { goalMode: 'grams', protein: next.protein, carbs: next.carbs, fat: next.fat };
-    }
+    const input = { goalMode: 'grams', protein: next.protein, carbs: next.carbs, fat: next.fat };
     problem.hidden = true;
     save.disabled = true;
     const result = await app.actions.saveGoalSettings(input);
@@ -200,8 +145,7 @@ function goalsSection(app, settings) {
       problem.hidden = false;
     }
   } } },
-  h('div', { class: 'field' }, h('div', { class: 'row' }, pills.percent, pills.grams)),
-  panels.percent, panels.grams, problem, h('div', { class: 'field' }, save));
+  fields, caloriesLine, problem, h('div', { class: 'field' }, save));
   refresh();
   return section('Daily goals', form);
 }

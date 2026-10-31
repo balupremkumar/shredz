@@ -11,12 +11,14 @@
 import { createStore, createIdbBackend } from './store.js';
 import { createApp } from './actions.js';
 import { localDate, dayLabel, shortDate } from './format.js';
-import { h, clear, icon } from './ui/dom.js';
+import { h, clear, icon, hardenFields } from './ui/dom.js';
+import { sheetGeometry } from './sheet-geometry.js';
 import * as diary from './ui/diary.js';
 import * as foods from './ui/foods.js';
 import * as weight from './ui/weight.js';
 import * as settings from './ui/settings.js';
 import * as dictate from './ui/dictate.js';
+import * as welcome from './ui/welcome.js';
 import { registerServiceWorker } from './pwa.js';
 
 const screens = { diary, foods, weight, settings };
@@ -68,8 +70,61 @@ async function boot() {
 
   let previousToday = localDate();
   const { actions, select } = controller;
+  const html = document.documentElement;
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+  document.body.appendChild(probe);
+  const probeStyle = getComputedStyle(probe);
+  const safeTop = parseFloat(probeStyle.paddingTop) || 0;
+  const safeBottom = parseFloat(probeStyle.paddingBottom) || 0;
+  probe.remove();
+  const vv = window.visualViewport;
+  let sheetOpen = false;
+  let previousSheet;
+  let savedScrollY = 0;
+  function updateViewport() {
+    const geometry = sheetGeometry({ innerHeight: window.innerHeight,
+      vvHeight: vv ? vv.height : window.innerHeight,
+      vvOffsetTop: vv ? vv.offsetTop : 0, vvScale: vv ? vv.scale : 1, safeTop, safeBottom });
+    html.style.setProperty('--vv-height', `${geometry.vvHeight}px`);
+    html.style.setProperty('--vv-bottom', `${geometry.bottom}px`);
+    for (const row of sheetRoot.querySelectorAll('.sheet__dock, .sheet__foot')) {
+      row.style.paddingBottom = geometry.keyboardOpen ? '10px' : '';
+    }
+    if (sheetOpen && vv && vv.offsetTop > 0) window.scrollTo(0, 0);
+  }
+  if (vv) {
+    vv.addEventListener('resize', updateViewport);
+    vv.addEventListener('scroll', updateViewport);
+  }
+  window.addEventListener('resize', updateViewport);
+  updateViewport();
+
+  function revealField(panel, field) {
+    if (!field || !field.matches('input, textarea, select') || !field.closest('.sheet__body')) return;
+    const reveal = () => {
+      if (panel.isConnected && document.activeElement === field) field.scrollIntoView({ block: 'nearest' });
+    };
+    requestAnimationFrame(reveal);
+    setTimeout(reveal, 300);
+  }
   function render() {
     const state = controller.getState();
+    const nextSheet = state.sheet?.name;
+    if (previousSheet !== nextSheet) {
+      const previous = previousSheet;
+      previousSheet = nextSheet;
+      if (Object.hasOwn(sheets, previous)) sheets[previous].onClose?.();
+    }
+    if (state.sheet && !sheetOpen) {
+      savedScrollY = window.scrollY;
+      sheetOpen = true;
+      html.dataset.sheetOpen = '';
+    } else if (!state.sheet && sheetOpen) {
+      sheetOpen = false;
+      delete html.dataset.sheetOpen;
+      window.scrollTo(0, savedScrollY);
+    }
     const screen = screens[state.tab];
     const app = { state, actions, select, toast, rerender: render };
     if (state.data.settings.largeText) document.documentElement.dataset.text = 'large';
@@ -107,12 +162,23 @@ async function boot() {
         return;
       }
       const panel = h('section', { class: 'sheet', attrs: { role: 'dialog', 'aria-modal': 'true', tabindex: '-1' } });
-      sheetRoot.appendChild(h('div', { class: 'sheet-backdrop', on: { click: () => actions.closeSheet() } }));
+      const backdrop = h('div', { class: 'sheet-backdrop', on: { click: () => actions.closeSheet() } });
+      backdrop.addEventListener('touchmove', event => event.preventDefault(), { passive: false });
+      sheetRoot.appendChild(backdrop);
       sheetRoot.appendChild(panel);
+      panel.addEventListener('focusin', event => {
+        // Quantity controls can replace search controls without a shell render.
+        hardenFields(panel);
+        revealField(panel, event.target);
+      });
       sheet(panel, app, state.sheet.props);
+      hardenFields(panel);
+      updateViewport();
+      revealField(panel, document.activeElement);
       // A sheet may focus its own field (the dictate box must, so iOS raises the keyboard).
       if (!panel.contains(document.activeElement)) panel.focus();
     }
+    if (welcome.isActive(state)) welcome.render(sheetRoot, app);
   }
 
   controller.subscribe(render);
