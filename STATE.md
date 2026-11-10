@@ -3,11 +3,13 @@ Vault: [[HOME]] | [[projects/active/macro-diary/PLAN|Plan]] | [[PORTFOLIO|Portfo
 # STATE: Macro Diary
 
 ## Current state
-LIVE 31 Oct 2026: https://balupremkumar.github.io/shredz/ (public repo balupremkumar/shredz, GitHub Pages from main). v2.0.0 pushed 31 Oct, 57 E2E green against live.
+OFFLINE since 7 Nov 2026: Balu made the repo private and GitHub Free has no Pages on private repos. Was live 31 Oct at https://balupremkumar.github.io/shredz/ (repo balupremkumar/shredz, GitHub Pages from main). v2.0.0 pushed 31 Oct, 57 E2E green against live.
 E2E against the live site: 32 green (WebKit, iPhone 15). Unit 141 green. Commits use the GitHub no-reply email (history rewritten before first push; local tag pre-publish-backup holds the old history).
 Balu's 13 NZ foods: private/macro-diary-foods.json (git-ignored, never pushed); estimates to check in private/foods-research.md.
 
 ## Next steps
+- v3 DESIGNED 10 Nov 2026, nothing built, waiting on Balu's go-ahead for the task list: [[projects/active/macro-diary/DESIGN-V3|DESIGN-V3.md]] (rules K, S, D, T, F and additions A1 to A25), [[projects/active/macro-diary/BUILD-TASKS-V3|BUILD-TASKS-V3.md]] (waves W0 to W6 with a model per task), mock at mock/v3/index.html (https://claude.ai/artifact/MfiwTg1moBHF7TxBxoZnHZ, light and dark), Astryx findings in [[research/astryx-2026-11-10|the rundown]]. Balu's rulings 10 Nov: Fable owns the design ("I'll trust your design"), no bloat, the angle is MyFitnessPal without the ads, v3 starts with an empty diary and the same foods. Stack: React 19 + Astryx 0.7.11, src logic untouched. First task is wave 0, ending in a keyboard probe Balu taps through on his phone. Hosting is still his call.
+- Keyboard pop-up cause found 10 Nov: the food form (eight text fields plus a native select in one form, src/ui/foods.js:77-86) is what raises the iOS up/down/tick bar and AutoFill; attributes cannot switch those off in a web app.
 - RESUME HERE (paused 31 Oct 2026 for a PC restart, mid-way through v2 decision questions): Balu installed Shredz on his iPhone and wants a v2 overhaul. Finish the questions, show the plan and a mock, get his yes, then build.
 - v2 decisions LOCKED (Balu, 31 Oct):
   - Style: Apple Health / iOS native (grouped lists, edge-to-edge rows, subtle dividers, few boxes). He called v0.2 "bubbly", "cramped", "misaligned", "amateur"; fix spacing, hierarchy and alignment so the eye goes where it should.

@@ -21,3 +21,12 @@ Ideas offered to Balu on 31 Oct 2026 and not picked for v1.1. Read this before g
 - Compact diary (hide macro bars).
 - Logging streak.
 - Parser: count words ("slices", "pieces") as item units instead of per-food aliases.
+
+## v3 additions (10 Nov 2026)
+
+Twenty-five additions were chosen for the v3 build and are specified as A1 to A25 in [[projects/active/macro-diary/DESIGN-V3|DESIGN-V3.md]] section 14.
+From the list above they absorb: undo, fractions in dictation, goal weight, week view, move an item, name meals, backup reminder, safety copy before import.
+
+Offered and left out on purpose, do not re-offer without a reason: barcode scanning with an online food database, exercise, water, micronutrients, streaks and badges, meal photos, accounts and sync, social features, web recipe import.
+Parked for after v3: a native App Store shell (Capacitor) with the form bar removed and Apple Health weight; per-meal targets; goals per weekday; goal history; repeat last dictation.
+
