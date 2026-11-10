@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createApp } from '../src/actions.js';
-import { createStore, createMemoryBackend, DEFAULT_SETTINGS } from '../src/store.js';
-import { dayTotals, remaining } from '../src/diary.js';
-import * as insights from '../src/insights.js';
+import { createApp } from '../src/core/actions.js';
+import { createStore, createMemoryBackend, DEFAULT_SETTINGS } from '../src/core/store.js';
+import { dayTotals, remaining } from '../src/core/diary.js';
+import * as insights from '../src/core/insights.js';
 
 const date = '2026-10-31';
 const dictation = 'Meal number one, 2 Weet-Bix, green milk 200 mils and one scoop of whey protein. Meal number two, chicken breast 125 grams, basmati rice 150 grams and 20 grams of cashews. Save.';

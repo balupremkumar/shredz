@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import {
   localDate, addDays, daysBetween, shortDate, dayLabel, formatKcal,
   formatMacro, formatGrams, formatKg, formatChange, formatQty, parseNumber,
-} from '../src/format.js';
+} from '../src/core/format.js';
 
 test('calendar arithmetic crosses months, years and leap days in both directions', () => {
   for (const [a, n, b] of [
@@ -20,7 +20,7 @@ test('calendar arithmetic crosses months, years and leap days in both directions
 });
 
 test('Auckland local dates and UTC arithmetic survive both NZ daylight-saving changes', () => {
-  const moduleUrl = new URL('../src/format.js', import.meta.url).href;
+  const moduleUrl = new URL('../src/core/format.js', import.meta.url).href;
   const script = `
     import assert from 'node:assert/strict';
     import { localDate, addDays, daysBetween } from ${JSON.stringify(moduleUrl)};

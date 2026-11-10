@@ -1,0 +1,64 @@
+/*
+ * @input Astryx's neutral theme tokens
+ * @output The Shredz look: the same token names with Shredz values, light then dark
+ * @position The only file allowed to hold raw colours and px sizes (rule D1)
+ *
+ * Unlayered on purpose: Astryx's own values sit in cascade layers, so these win without !important.
+ */
+@font-face {
+  font-family: "Schibsted Grotesk";
+  src: url("./schibsted-grotesk-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+:root,
+[data-astryx-theme] {
+  --color-background-body: light-dark(#F1F3F6, #000000);
+  --color-background-surface: light-dark(#FFFFFF, #1A1C1F);
+  --color-background-card: light-dark(#FFFFFF, #1A1C1F);
+  --color-background-popover: light-dark(#F1F3F6, #0E0F11);
+  --color-background-muted: light-dark(#E6E9EE, #2A2D31);
+  --color-text-primary: light-dark(#0D1116, #F1F3F6);
+  --color-text-secondary: light-dark(#55606B, #A3ACB5);
+  --color-border: light-dark(rgba(13, 17, 22, 0.13), rgba(241, 243, 246, 0.16));
+  --color-track: light-dark(rgba(13, 17, 22, 0.09), rgba(241, 243, 246, 0.13));
+  --color-accent: light-dark(#0A6FC2, #4AA8F2);
+  --color-on-accent: light-dark(#FFFFFF, #04101F);
+  --color-accent-muted: light-dark(rgba(10, 111, 194, 0.13), rgba(74, 168, 242, 0.18));
+  --color-text-accent: light-dark(#0A6FC2, #4AA8F2);
+  --color-error: light-dark(#C4262E, #FF6B63);
+  --color-text-error: light-dark(#C4262E, #FF6B63);
+
+  /* Shredz's own tokens */
+  --shredz-accent-2: light-dark(#5FA3DB, #2F78B5);
+  --shredz-accent-3: light-dark(#A9CBEA, #1F4E77);
+  --shredz-pressed: light-dark(rgba(13, 17, 22, 0.08), rgba(241, 243, 246, 0.12));
+  --shredz-scale: 1;
+
+  --font-family-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-family-heading: var(--font-family-body);
+  --shredz-font-figure: "Schibsted Grotesk", var(--font-family-body);
+
+  --shredz-text-hero: calc(52px * var(--shredz-scale));
+  --shredz-text-amount: calc(64px * var(--shredz-scale));
+  --shredz-text-title: calc(28px * var(--shredz-scale));
+  --shredz-text-heading: calc(20px * var(--shredz-scale));
+  --shredz-text-body: calc(17px * var(--shredz-scale));
+  --shredz-text-second: calc(15px * var(--shredz-scale));
+  --shredz-text-small: calc(13px * var(--shredz-scale));
+
+  --shredz-radius-bar: 4px;
+  --shredz-radius-control: 10px;
+  --shredz-radius-group: 12px;
+  --shredz-radius-sheet: 16px;
+  --shredz-gutter: 16px;
+  --shredz-target: 44px;
+  --shredz-row: 54px;
+  --shredz-key: 54px;
+  --shredz-tabbar: 52px;
+  --shredz-hairline: 1px;
+  --shredz-caret: 3px;
+  --shredz-text-key: calc(26px * var(--shredz-scale));
+}

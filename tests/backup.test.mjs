@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BACKUP_SCHEMA, BackupError, backupFileName, exportBackup, parseBackup,
-  mergeData, summarise } from '../src/backup.js';
+  mergeData, summarise } from '../src/core/backup.js';
 
 const ts = '2026-10-31T08:00:00.000Z';
 function fixture() {
@@ -204,7 +204,7 @@ test('summarise counts records and distinct entry dates', () => {
 });
 
 test('backup module imports nothing', () => {
-  const source = readFileSync(new URL('../src/backup.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../src/core/backup.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /\bimport\s*(?:[({*'"\w])/);
 });
 

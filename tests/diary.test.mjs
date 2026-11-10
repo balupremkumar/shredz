@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   nutritionFor, roundTotals, mealTotals, dayTotals, dayView, remaining,
   nextMealNumber, copyMeal, copyDay, lastLoggedDate, upsertWeight, weightChange,
-} from '../src/diary.js';
+} from '../src/core/diary.js';
 
 const chicken = Object.freeze({ id: 'chicken', name: 'Chicken breast', aliases: [], unit: 'g',
   baseQty: 100, defaultQty: 125, kcal: 165, protein: 31, carbs: 0, fat: 3.6 });

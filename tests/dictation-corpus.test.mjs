@@ -11,7 +11,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { parseDictation } from '../src/parser.js';
+import { parseDictation } from '../src/core/parser.js';
 
 const corpus = JSON.parse(fs.readFileSync(new URL('./fixtures/dictation-corpus.json', import.meta.url), 'utf8'));
 

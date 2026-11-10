@@ -3,37 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#F1F3F6" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Shredz">
   <meta name="format-detection" content="telephone=no">
   <title>Shredz</title>
-  <link rel="preload" href="fonts/schibsted-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 </head>
 <body>
-  <div class="app" id="app">
-    <div class="brand">
-      <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
-        <circle cx="60" cy="60" r="46" stroke="currentColor" stroke-width="12" opacity=".32" fill="none"/>
-        <circle cx="60" cy="60" r="28" stroke="currentColor" stroke-width="12" opacity=".62" fill="none"/>
-        <circle cx="60" cy="60" r="13" fill="currentColor"/>
-      </svg>
-      Shredz
-    </div>
-    <header id="topbar" class="topbar"></header>
-    <main id="main"></main>
-    <div id="dock" class="dock" hidden></div>
-    <nav id="tabbar" class="tabbar" aria-label="Main navigation"></nav>
-    <div id="sheet-root"></div>
-    <div id="toast-root"></div>
-  </div>
+  <div id="root"></div>
   <noscript>Shredz needs JavaScript to run.</noscript>
-  <script type="module" src="src/app.js"></script>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

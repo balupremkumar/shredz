@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import {
   DB_NAME, DB_VERSION, DEFAULT_SETTINGS,
   createMemoryBackend, createIdbBackend, createStore,
-} from '../src/store.js';
+} from '../src/core/store.js';
 
 const makeFood = (overrides = {}) => ({
   id: 'oats', name: 'Oats', aliases: ['porridge'], unit: 'g',
@@ -49,7 +49,7 @@ test('constants, lazy IndexedDB creation and import without IndexedDB', async ()
   assert.equal(globalThis.indexedDB, undefined);
   const backend = createIdbBackend();
   await assert.rejects(backend.getAll('foods'), /IndexedDB is unavailable/);
-  const source = await readFile(new URL('../src/store.js', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../src/core/store.js', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /\bimport\s*(?:[('"{*]|[\w$]+\s+from\b)/);
 });
 

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseDictation } from '../src/parser.js';
+import { parseDictation } from '../src/core/parser.js';
 
 const foods = [
   ['weetbix', 'Weet-Bix', 'item', 2, ['weetbix', 'wheat bix']],

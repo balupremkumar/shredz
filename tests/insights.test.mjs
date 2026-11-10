@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   movingAverage, report, goalsFromPercent, kcalFromGrams, splitFromGrams, toCsv, diaryCsv, weightsCsv,
   recentFoods, qtyStep, stepQty, needsWeighIn,
-} from '../src/insights.js';
+} from '../src/core/insights.js';
 
 const oats = { id: 'o', name: 'Oats', unit: 'g', baseQty: 100, kcal: 380, protein: 13, carbs: 60, fat: 7 };
 const egg = { id: 'e', name: 'Egg, "large"', unit: 'item', baseQty: 1, kcal: 70, protein: 6, carbs: 0.5, fat: 5 };

@@ -1,11 +1,32 @@
 {
   "name": "macro-diary",
-  "version": "0.1.0",
+  "version": "3.0.0-dev",
   "private": true,
   "type": "module",
   "description": "Local-only food and weight diary for iPhone (PWA).",
   "license": "MIT",
   "scripts": {
-    "test": "node --test tests/*.test.mjs"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc",
+    "check:source": "node scripts/check-source.mjs",
+    "check": "tsc && node --test tests/*.test.mjs && node scripts/check-source.mjs"
+  },
+  "dependencies": {
+    "@astryxdesign/core": "0.7.11",
+    "@astryxdesign/theme-neutral": "0.7.11",
+    "@stylexjs/stylex": "0.19.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@astryxdesign/cli": "0.7.11",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.2.0",
+    "typescript": "6.0.3",
+    "vite": "8.1.3"
   }
 }
