@@ -1,10 +1,1 @@
-// Shredz v3 interim worker. Its only job is to retire the v2 worker and its cached files,
-// so a phone that had v2 installed loads v3 from the network. The offline worker arrives in wave 4.
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', event => {
-  event.waitUntil((async () => {
-    for (const key of await caches.keys()) await caches.delete(key);
-    await self.clients.claim();
-    for (const client of await self.clients.matchAll({ type: 'window' })) client.navigate(client.url);
-  })());
-});
+if(!self.define){let e,s={};const i=(i,n)=>(i=new URL(i+".js",n).href,s[i]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=i,e.onload=s,document.head.appendChild(e)}else e=i,importScripts(i),s()}).then(()=>{let e=s[i];if(!e)throw new Error(`Module ${i} didn’t register its module`);return e}));self.define=(n,c)=>{const o=e||("document"in self?document.currentScript.src:"")||location.href;if(s[o])return;let r={};const t=e=>i(e,o),l={module:{uri:o},exports:r,require:t};s[o]=Promise.all(n.map(e=>l[e]||t(e))).then(e=>(c(...e),r))}}define(["./workbox-2fbc6a65"],function(e){"use strict";importScripts("sw-cleanup.js"),self.addEventListener("message",e=>{e.data&&"SKIP_WAITING"===e.data.type&&self.skipWaiting()}),e.precacheAndRoute([{url:"sw-cleanup.js",revision:"6929f90022cd0bf995e6bc8c9d901292"},{url:"manifest.webmanifest",revision:"5489888957e76c47d0e7ee4be1ba1107"},{url:"index.html",revision:"8a971445e22f6834b3b3dc1b4ca0c1a2"},{url:"icons/icon.svg",revision:"d313024f272a55b2636f96110bbcc853"},{url:"icons/icon-512.png",revision:"caed2a8337c623c301ad54480624f4fd"},{url:"icons/icon-192.png",revision:"6f5b48423462e25e71ef483c96639007"},{url:"icons/icon-180.png",revision:"d9c4fc0f1e3992a6f91fa0bfc60085b9"},{url:"assets/schibsted-grotesk-latin-Bb8VGrTG.woff2",revision:null},{url:"assets/index-DceWSwqo.css",revision:null},{url:"assets/index-BM5csqvF.js",revision:null}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html")))});
