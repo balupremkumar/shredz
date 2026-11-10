@@ -400,9 +400,9 @@ Foods.
 
 | # | Addition | What it means in use |
 |---|---|---|
-| A19 | Starter foods | About 300 common New Zealand foods shipped inside the app and searchable offline, so a new person can log on day one. Your own foods always rank first and are marked as yours. The data source's licence is checked before it ships. |
+| A19 | Your foods built in | The foods Balu eats are in the app from first open (list in `private/foods-v3.json`), each one editable, and adding another is one row away. No starter database. |
 | A20 | Enter it as the label prints it | Energy in kJ or kcal, values per 100 g or per serving. New Zealand labels print kJ; the app converts. |
-| A21 | Forgiving search | Finds "chiken", "weetbix" and other names you have taught it, as you type. |
+| A21 | Forgiving search and dictation | The top priority (Balu, 10 Nov). Finds "chiken" and "weetbix"; takes words in any order; "one chicken breast" and "100 grams of chicken breast" both work; "chicken breast and rice, 100 grams of each" gives both foods 100 g. Whatever it hears is shown as rows that one tap corrects. Every phrasing Balu reports goes into the test corpus. |
 
 Trends.
 
@@ -416,7 +416,7 @@ Trust.
 | # | Addition | What it means in use |
 |---|---|---|
 | A24 | Data safety | The app asks the phone to keep its storage, shows when the last backup was, reminds after 14 days, saves a safety copy before any import, and exports to Files. |
-| A25 | Ready for someone else | First run with no personal foods, kilograms or pounds, and one plain line on the Welcome screen: your diary never leaves this phone. |
+| A25 | Dropped | Was "ready for someone else". Balu ruled on 10 Nov that this is a personal app, not for sale, so there is no pounds setting and no stranger-facing first run. |
 
 Left out on purpose: barcode scanning and an online food database (the only feature that needs the internet, and the first thing to revisit if this is sold), exercise, water, micronutrients, streaks and badges, photos of meals, accounts and sync, social features, recipes from the web, ads.
 
